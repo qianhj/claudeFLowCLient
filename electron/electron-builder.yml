@@ -1,6 +1,6 @@
-appId: com.fufan.cc-flow
-productName: "Fufan CC Flow"
-copyright: "Copyright © 2024 Fufan"
+appId: com.hz.cc-flow
+productName: "HZ CC Flow"
+copyright: "Copyright © 2024 HZ"
 
 # 主进程入口（electron/dist/main.js 编译产物）
 files:
@@ -26,7 +26,7 @@ extraResources:
       - "**/*"
 
 directories:
-  output: "C:/FufanBuild/release"
+  output: "dist/release"
   buildResources: "assets"
 
 # Windows 打包配置
@@ -45,7 +45,37 @@ nsis:
   allowToChangeInstallationDirectory: true
   createDesktopShortcut: true
   createStartMenuShortcut: true
-  shortcutName: "Fufan CC Flow"
+  shortcutName: "HZ CC Flow"
+
+# macOS 打包配置
+mac:
+  target:
+    - target: dmg
+      arch:
+        - x64
+        - arm64
+    - target: zip
+      arch:
+        - x64
+        - arm64
+  # 不签名（无证书）
+  identity: null
+  # 禁用 Gatekeeper 评估（需要签名时才可用）
+  gatekeeperAssess: false
+  #  hardenedRuntime 需要签名，禁用
+  hardenedRuntime: false
+
+# Linux 打包配置
+linux:
+  target:
+    - target: AppImage
+      arch:
+        - x64
+    - target: deb
+      arch:
+        - x64
+  category: Development
+  maintainer: "HZ"
 
 # 重建原生模块（node-pty）
 afterPack: "scripts/rebuild-native.js"

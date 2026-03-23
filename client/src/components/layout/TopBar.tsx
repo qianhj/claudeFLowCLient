@@ -40,7 +40,7 @@ export default function TopBar() {
           <Zap size={14} className="text-obsidian-900" />
         </div>
         <span className="font-display font-semibold text-[15px] tracking-tight text-obsidian-50">
-          Fufan-CC Flow
+          HZ-CC Flow
         </span>
       </div>
 

@@ -40,6 +40,8 @@ export interface ConfigData {
   httpsProxy?: string;
   socksProxy?: string;
   autoUpdatesChannel?: "latest" | "stable";
+  gitlabUrl?: string;
+  gitlabToken?: string;
 }
 
 export interface ApiError {

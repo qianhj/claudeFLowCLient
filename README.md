@@ -1,8 +1,8 @@
-# Fufan-CC Flow
+# HZ-CC Flow
 
 > 基于 Web 的 Claude Code 图形化前端，让 AI 编程工作流可视化。
 
-Fufan-CC Flow 将 Claude Code CLI 的全部能力封装为友好的 Web 界面，支持实时对话流、工具调用可视化、权限确认（HIL）、会话管理、MCP 扩展、终端集成等功能，适合个人开发者、团队协作以及 AI 编程教学场景。
+HZ-CC Flow 将 Claude Code CLI 的全部能力封装为友好的 Web 界面，支持实时对话流、工具调用可视化、权限确认（HIL）、会话管理、MCP 扩展、终端集成等功能，适合个人开发者、团队协作以及 AI 编程教学场景。
 
 ---
 
@@ -94,8 +94,8 @@ claude --version   # 确认安装成功
 #### 5. 克隆并安装项目
 
 ```bash
-git clone <repo-url> fufan-cc-flow-src
-cd fufan-cc-flow-src
+git clone <repo-url> hz-cc-flow-src
+cd hz-cc-flow-src
 pnpm install
 ```
 
@@ -157,8 +157,8 @@ Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
 在 Git Bash 或 PowerShell 中：
 
 ```bash
-git clone <repo-url> fufan-cc-flow-src
-cd fufan-cc-flow-src
+git clone <repo-url> hz-cc-flow-src
+cd hz-cc-flow-src
 pnpm install
 ```
 
@@ -233,8 +233,8 @@ claude --version
 #### 5. 克隆并安装项目
 
 ```bash
-git clone <repo-url> fufan-cc-flow-src
-cd fufan-cc-flow-src
+git clone <repo-url> hz-cc-flow-src
+cd hz-cc-flow-src
 pnpm install
 ```
 
@@ -264,7 +264,7 @@ pnpm dev
 ## 项目结构
 
 ```
-fufan-cc-flow-src/
+hz-cc-flow-src/
 ├── client/                   # 前端
 │   ├── src/
 │   │   ├── components/       # UI 组件

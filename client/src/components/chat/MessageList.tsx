@@ -1,6 +1,8 @@
 import { useState, useCallback, useEffect } from "react";
 import { Loader2, Image as ImageIcon, FileText, RotateCcw } from "lucide-react";
 import { useChatStore } from "../../stores/chatStore";
+import { useConfigStore } from "../../stores/configStore";
+import { useUIStore } from "../../stores/uiStore";
 import { useAutoScroll } from "../../hooks/useAutoScroll";
 import MarkdownRenderer from "../shared/MarkdownRenderer";
 import ToolCallCard from "./ToolCallCard";
@@ -8,6 +10,7 @@ import ErrorBoundary from "../shared/ErrorBoundary";
 import TaskResultCard from "./TaskResultCard";
 import CompactDivider from "./CompactDivider";
 import { api } from "../../services/api";
+import { wsService } from "../../services/websocket";
 import type { Session } from "../../types/session";
 
 function formatTime(ts: number) {
@@ -462,7 +465,9 @@ function AssistantBubble({
 /* ── Welcome screen ── */
 function WelcomeScreen() {
   const [recentSession, setRecentSession] = useState<Session | null>(null);
-  const { setSessionId, loadHistoryMessages } = useChatStore();
+  const { setSessionId, loadHistoryMessages, currentSessionId } = useChatStore();
+  const { model, effort, apiKey } = useConfigStore();
+  const { runMode } = useUIStore();
 
   useEffect(() => {
     api.getSessions(undefined)
@@ -488,6 +493,24 @@ function WelcomeScreen() {
     } catch { /* ignore */ }
   };
 
+  const handleQuickStart = useCallback((desc: string) => {
+    // Add user message to local state
+    useChatStore.getState().addUserMessage(desc);
+
+    // Send message via WebSocket
+    wsService.send("send_message", {
+      prompt: desc,
+      model,
+      effort,
+      runMode,
+      apiKey: apiKey || undefined,
+      sessionId: currentSessionId || undefined,
+    });
+
+    // Start streaming
+    useChatStore.getState().startStreaming();
+  }, [model, effort, runMode, apiKey, currentSessionId]);
+
   return (
     <div className="flex flex-col items-center justify-center min-h-[55vh] text-center px-4 select-none">
       {/* Logo */}
@@ -506,7 +529,7 @@ function WelcomeScreen() {
       </div>
 
       <h1 className="font-display text-2xl font-bold text-white mb-2 tracking-tight">
-        Fufan-CC Flow
+        HZ-CC Flow
       </h1>
       <p className="text-sm text-slate-400 max-w-md leading-relaxed mb-6">
         Claude Code 的强大能力，尽在可视化呈现。描述你想构建的内容，<br />
@@ -536,7 +559,7 @@ function WelcomeScreen() {
         ].map((hint) => (
           <button
             key={hint.title}
-            onClick={() => useChatStore.getState().addUserMessage(hint.desc)}
+            onClick={() => handleQuickStart(hint.desc)}
             className="text-left p-3.5 rounded-xl border border-white/5 hover:border-purple-glow/25 hover:bg-white/5 transition-all group"
             style={{ background: "rgba(30,27,46,0.4)" }}
           >

@@ -20,6 +20,8 @@ export class ConfigService {
         httpsProxy: settings.httpsProxy || "",
         socksProxy: settings.socksProxy || "",
         autoUpdatesChannel: settings.autoUpdatesChannel || "latest",
+        gitlabUrl: settings.gitlabUrl || "https://gitlab.com",
+        gitlabToken: settings.gitlabToken || "",
       };
     } catch {
       return {
@@ -31,6 +33,8 @@ export class ConfigService {
         httpsProxy: "",
         socksProxy: "",
         autoUpdatesChannel: "latest",
+        gitlabUrl: "https://gitlab.com",
+        gitlabToken: "",
       };
     }
   }
@@ -55,6 +59,12 @@ export class ConfigService {
     if (partial.socksProxy !== undefined) settings.socksProxy = partial.socksProxy;
     if (partial.autoUpdatesChannel !== undefined)
       settings.autoUpdatesChannel = partial.autoUpdatesChannel;
+    if (partial.gitlabUrl !== undefined) settings.gitlabUrl = partial.gitlabUrl;
+    if (partial.gitlabToken !== undefined) {
+      settings.gitlabToken = partial.gitlabToken;
+      // Debug log
+      console.log("[ConfigService] Saving gitlabToken, length:", partial.gitlabToken?.length);
+    }
 
     await fs.mkdir(path.dirname(this.settingsPath), { recursive: true });
     await fs.writeFile(this.settingsPath, JSON.stringify(settings, null, 2));

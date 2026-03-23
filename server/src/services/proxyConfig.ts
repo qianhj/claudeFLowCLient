@@ -4,7 +4,7 @@ import os from "os";
 
 // Stored separately from ~/.claude/settings.json to avoid file-lock
 // contention with the Claude Code process on Windows.
-const PROXY_FILE = path.join(os.homedir(), ".fufan-cc-flow", "proxy.json");
+const PROXY_FILE = path.join(os.homedir(), ".hz-cc-flow", "proxy.json");
 
 export interface ProxyData {
   httpProxy: string;

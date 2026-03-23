@@ -107,7 +107,7 @@ export async function testClaudeConnection(opts: {
   httpsProxy?: string;
 }): Promise<ClaudeTestResult> {
   const start = Date.now();
-  const testCwd = join(tmpdir(), "fufan-cc-sdk-test");
+  const testCwd = join(tmpdir(), "hz-cc-sdk-test");
 
   try {
     const env: Record<string, string | undefined> = {};

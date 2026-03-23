@@ -1,7 +1,7 @@
 $ErrorActionPreference = "Stop"
 
 Write-Host "[1/3] npm install electron..." -ForegroundColor Cyan
-Set-Location "d:\fufan-cc-flow-src\electron"
+Set-Location "d:\hz-cc-flow-src\electron"
 npm install
 if ($LASTEXITCODE -ne 0) { throw "electron npm install failed" }
 
@@ -13,4 +13,4 @@ Write-Host "[3/3] electron-builder pack..." -ForegroundColor Cyan
 & ".\node_modules\.bin\electron-builder.CMD" --config electron-builder.yml
 if ($LASTEXITCODE -ne 0) { throw "electron-builder failed" }
 
-Write-Host "SUCCESS! Output: C:\FufanBuild\release" -ForegroundColor Green
+Write-Host "SUCCESS! Output: C:\HzBuild\release" -ForegroundColor Green

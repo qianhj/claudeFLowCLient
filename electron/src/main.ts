@@ -147,7 +147,7 @@ async function createWindow(): Promise<void> {
     height: 900,
     minWidth: 900,
     minHeight: 600,
-    title: "Fufan CC Flow",
+    title: "HZ CC Flow",
     backgroundColor: "#13111C",
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),

@@ -2,7 +2,7 @@
 const { execSync } = require('child_process');
 const path = require('path');
 
-const root = 'd:\\fufan-cc-flow-src';
+const root = 'd:\\hz-cc-flow-src';
 const electronDir = path.join(root, 'electron');
 
 function run(cmd, cwd) {
@@ -20,7 +20,7 @@ try {
   // Step 3: electron-builder pack
   run('.\\node_modules\\.bin\\electron-builder.CMD --config electron-builder.yml', electronDir);
 
-  console.log('\n=== SUCCESS! Output: C:\\FufanBuild\\release ===');
+  console.log('\n=== SUCCESS! Output: C:\\HzBuild\\release ===');
 } catch (e) {
   console.error('\n=== FAILED:', e.message);
   process.exit(1);

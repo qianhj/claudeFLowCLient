@@ -1,18 +1,22 @@
 import { useCallback, useRef, useState, useEffect } from "react";
 import {
   FolderOpen, Search, History, Settings, ChevronLeft,
-  ChevronRight, Zap, X, FileText, Check, Pencil,
+  ChevronRight, Zap, X, FileText, Check, Pencil, GitBranch, GitMerge,
 } from "lucide-react";
 import { useUIStore, type LeftNavPanel } from "../../stores/uiStore";
 import { useFileStore } from "../../stores/fileStore";
 import ContextBar from "../manage/ContextBar";
 import FileTree from "../ide/FileTree";
 import CheckpointTimeline from "../agent/CheckpointTimeline";
+import GitManager from "../manage/GitManager";
+import GitLabManager from "../manage/GitLabManager";
 
 const NAV_ITEMS: { id: LeftNavPanel; icon: typeof FolderOpen; label: string; badge?: number }[] = [
   { id: "files",  icon: FolderOpen,  label: "Files" },
   { id: "search", icon: Search,      label: "Search" },
   { id: "checkpoints", icon: History, label: "Checkpoints" },
+  { id: "git", icon: GitBranch, label: "Git" },
+  { id: "gitlab", icon: GitMerge, label: "GitLab" },
 ];
 
 export default function Sidebar() {
@@ -101,15 +105,15 @@ export default function Sidebar() {
           </div>
           <div className="flex-1 min-w-0">
             <a
-              href="https://fufan.ai"
+              href="https://hz-tech.net/"
               target="_blank"
               rel="noopener noreferrer"
               className="block text-sm font-display font-bold text-white truncate leading-tight hover:text-amber-glow transition-colors"
             >
-              Fufan-CC Flow
+              HZ-CC Flow
             </a>
             <div className="text-[10px] text-slate-500 truncate leading-tight">
-              赋范空间出品
+             瀚正科技
             </div>
           </div>
           {/* Collapse toggle */}
@@ -206,6 +210,8 @@ export default function Sidebar() {
           {leftNavPanel === "files"  && <FilesPanel onFileOpen={handleFileOpen} />}
           {leftNavPanel === "search" && <SearchPanel onFileOpen={handleFileOpen} />}
           {leftNavPanel === "checkpoints" && <CheckpointsPanel />}
+          {leftNavPanel === "git" && <GitPanel />}
+          {leftNavPanel === "gitlab" && <GitLabPanel />}
         </div>
 
         {/* ── Bottom: Settings + ContextBar ── */}
@@ -294,6 +300,24 @@ function CheckpointsPanel() {
   return (
     <div className="flex-1 overflow-y-auto min-h-0">
       <CheckpointTimeline />
+    </div>
+  );
+}
+
+/* ── Git sub-panel ── */
+function GitPanel() {
+  return (
+    <div className="flex-1 overflow-hidden min-h-0">
+      <GitManager />
+    </div>
+  );
+}
+
+/* ── GitLab sub-panel ── */
+function GitLabPanel() {
+  return (
+    <div className="flex-1 overflow-hidden min-h-0">
+      <GitLabManager />
     </div>
   );
 }

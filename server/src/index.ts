@@ -3,6 +3,15 @@ import app from "./app.js";
 import { setupWebSocket } from "./websocket/index.js";
 import { logger } from "./utils/logger.js";
 
+// Catch unhandled rejections / exceptions so we can see the cause instead of silent exit
+process.on("unhandledRejection", (reason) => {
+  logger.error(`[UNHANDLED REJECTION] ${reason instanceof Error ? reason.stack : String(reason)}`);
+});
+process.on("uncaughtException", (err) => {
+  logger.error(`[UNCAUGHT EXCEPTION] ${err.stack}`);
+  process.exit(1);
+});
+
 const PORT = Number(process.env.PORT) || 3001;
 
 const server = http.createServer(app);
@@ -22,6 +31,6 @@ server.on("error", (err: NodeJS.ErrnoException) => {
 });
 
 server.listen(PORT, "0.0.0.0", () => {
-  logger.info(`Fufan-CC Flow server running on http://0.0.0.0:${PORT}`);
+  logger.info(`HZ-CC Flow server running on http://0.0.0.0:${PORT}`);
   logger.info("WebSocket endpoints: /ws/chat");
 });

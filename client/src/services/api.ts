@@ -22,7 +22,7 @@ async function request<T>(
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({ message: res.statusText }));
-    throw new Error(err.message || res.statusText);
+    throw new Error(err.message || err.error || res.statusText);
   }
   return res.json();
 }
@@ -527,4 +527,141 @@ export const api = {
         sessionCount: number;
       }>("/system/debug-claude-home"),
   },
+
+  // ── Git ──
+  getGitStatus: (projectPath: string) =>
+    request<{
+      isRepo: boolean;
+      branch: string | null;
+      ahead: number;
+      behind: number;
+      modified: string[];
+      staged: string[];
+      untracked: string[];
+      conflicted: string[];
+      isClean: boolean;
+    }>(`/git/status?path=${encodeURIComponent(projectPath)}`),
+
+  getGitLog: (projectPath: string, limit = 50) =>
+    request<{
+      commits: {
+        hash: string;
+        shortHash: string;
+        message: string;
+        author: string;
+        date: string;
+        relativeDate: string;
+      }[];
+      isRepo: boolean;
+    }>(`/git/log?path=${encodeURIComponent(projectPath)}&limit=${limit}`),
+
+  getGitBranches: (projectPath: string) =>
+    request<{
+      branches: { name: string; isCurrent: boolean; isRemote: boolean }[];
+      current: string | null;
+      isRepo: boolean;
+    }>(`/git/branches?path=${encodeURIComponent(projectPath)}`),
+
+  getGitDiff: (projectPath: string, file?: string, staged = false) =>
+    request<{ diff: string }>(
+      `/git/diff?path=${encodeURIComponent(projectPath)}${file ? `&file=${encodeURIComponent(file)}` : ""}${staged ? "&staged=true" : ""}`
+    ),
+
+  gitAdd: (projectPath: string, files: string[]) =>
+    request<{ success: boolean }>("/git/add", {
+      method: "POST",
+      body: JSON.stringify({ path: projectPath, files }),
+    }),
+
+  gitUnstage: (projectPath: string, files: string[]) =>
+    request<{ success: boolean }>("/git/unstage", {
+      method: "POST",
+      body: JSON.stringify({ path: projectPath, files }),
+    }),
+
+  gitCommit: (projectPath: string, message: string) =>
+    request<{ success: boolean }>("/git/commit", {
+      method: "POST",
+      body: JSON.stringify({ path: projectPath, message }),
+    }),
+
+  gitCheckout: (projectPath: string, branch: string, create = false) =>
+    request<{ success: boolean; branch: string }>("/git/checkout", {
+      method: "POST",
+      body: JSON.stringify({ path: projectPath, branch, create }),
+    }),
+
+  gitDiscard: (projectPath: string, files: string[]) =>
+    request<{ success: boolean }>("/git/discard", {
+      method: "POST",
+      body: JSON.stringify({ path: projectPath, files }),
+    }),
+
+  gitInit: (projectPath: string) =>
+    request<{ success: boolean }>("/git/init", {
+      method: "POST",
+      body: JSON.stringify({ path: projectPath }),
+    }),
+
+  // ── GitLab ──
+  getGitLabConfig: () =>
+    request<{ configured: boolean; url: string }>("/gitlab/config"),
+  saveGitLabConfig: (url: string, token: string) =>
+    request<{ success: boolean }>("/gitlab/config", {
+      method: "PUT",
+      body: JSON.stringify({ url, token }),
+    }),
+  getGitLabProfile: () =>
+    request<{ id: number; username: string; name: string; avatar_url: string; web_url: string }>("/gitlab/profile"),
+  getGitLabGroups: (search?: string) =>
+    request<{ id: number; name: string; full_path: string; avatar_url: string | null; description: string }[]>(
+      `/gitlab/groups${search ? `?search=${encodeURIComponent(search)}` : ""}`
+    ),
+  getGitLabProjects: (opts?: { search?: string; group_id?: number; page?: number }) => {
+    const p = new URLSearchParams();
+    if (opts?.search) p.set("search", opts.search);
+    if (opts?.group_id) p.set("group_id", String(opts.group_id));
+    if (opts?.page) p.set("page", String(opts.page));
+    const qs = p.toString();
+    return request<{
+      id: number;
+      name: string;
+      path_with_namespace: string;
+      description: string | null;
+      visibility: string;
+      star_count: number;
+      last_activity_at: string;
+      default_branch: string;
+      web_url: string;
+      avatar_url: string | null;
+    }[]>(`/gitlab/projects${qs ? `?${qs}` : ""}`);
+  },
+  getGitLabTree: (projectId: number | string, path = "", ref = "HEAD") =>
+    request<{ id: string; name: string; type: "tree" | "blob"; path: string; mode: string }[]>(
+      `/gitlab/projects/${projectId}/tree?path=${encodeURIComponent(path)}&ref=${encodeURIComponent(ref)}`
+    ),
+  getGitLabFile: (projectId: number | string, filepath: string, ref = "HEAD") =>
+    request<{ file_name: string; file_path: string; size: number; encoding: string; content: string; decodedContent?: string; ref: string; last_commit_id: string }>(
+      `/gitlab/projects/${projectId}/files?filepath=${encodeURIComponent(filepath)}&ref=${encodeURIComponent(ref)}`
+    ),
+  getGitLabBranches: (projectId: number | string) =>
+    request<{ name: string; default: boolean; merged: boolean; protected: boolean; commit: { id: string; short_id: string; title: string; committed_date: string } }[]>(
+      `/gitlab/projects/${projectId}/branches`
+    ),
+  getGitLabCommits: (projectId: number | string, ref = "HEAD", page = 1) =>
+    request<{ id: string; short_id: string; title: string; author_name: string; authored_date: string; committed_date: string; web_url: string }[]>(
+      `/gitlab/projects/${projectId}/commits?ref_name=${encodeURIComponent(ref)}&page=${page}`
+    ),
+  getGitLabPipelines: (projectId: number | string, page = 1) =>
+    request<{ id: number; status: string; ref: string; sha: string; created_at: string; updated_at: string; web_url: string }[]>(
+      `/gitlab/projects/${projectId}/pipelines?page=${page}`
+    ),
+  getGitLabMergeRequests: (projectId: number | string, state: "opened" | "closed" | "merged" | "all" = "opened", page = 1) =>
+    request<{ id: number; iid: number; title: string; state: string; author: { name: string; avatar_url: string }; created_at: string; updated_at: string; web_url: string; source_branch: string; target_branch: string }[]>(
+      `/gitlab/projects/${projectId}/merge_requests?state=${state}&page=${page}`
+    ),
+  getGitLabIssues: (projectId: number | string, state: "opened" | "closed" | "all" = "opened", page = 1) =>
+    request<{ id: number; iid: number; title: string; state: string; author: { name: string; avatar_url: string }; created_at: string; updated_at: string; web_url: string; labels: string[]; assignee: { name: string } | null }[]>(
+      `/gitlab/projects/${projectId}/issues?state=${state}&page=${page}`
+    ),
 };

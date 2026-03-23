@@ -1,7 +1,7 @@
 import { create } from "zustand";
 
 type SidebarTab = "sessions" | "files" | "agents" | "extensions" | "settings";
-export type LeftNavPanel = "files" | "search" | "checkpoints";
+export type LeftNavPanel = "files" | "search" | "checkpoints" | "git" | "gitlab";
 export type RightSidebarTab = "monitor" | "extensions" | "agent";
 export type RunMode = "default" | "plan" | "edit";
 
@@ -96,7 +96,7 @@ export const useUIStore = create<UIState>((set) => ({
   terminalHeight: 260,
 
   wsConnected: false,
-  projectPath: localStorage.getItem("fufan_projectPath") || "",
+  projectPath: localStorage.getItem("hz_projectPath") || "",
 
   runMode: "default",
 
@@ -127,7 +127,7 @@ export const useUIStore = create<UIState>((set) => ({
 
   setWsConnected: (c) => set({ wsConnected: c }),
   setProjectPath: (p) => {
-    localStorage.setItem("fufan_projectPath", p);
+    localStorage.setItem("hz_projectPath", p);
     set({ projectPath: p });
   },
 

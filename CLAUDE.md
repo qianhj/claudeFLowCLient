@@ -1,13 +1,13 @@
-# Fufan-CC Flow — Claude Code 项目指南
+# HZ-CC Flow — Claude Code 项目指南
 
 ## 项目简介
 
-Fufan-CC Flow 是基于 Web 的 Claude Code 图形化前端，通过 **Claude Agent SDK** 将 Claude Code CLI 的全部能力以友好的 Web UI 呈现，支持：实时对话流、Tool Call 可视化、HIL 权限确认、Session 管理、上下文压缩、MCP 管理、Memory 管理、终端集成、Sub-Agent 树、工作流、团队协作、插件/技能市场等。
+HZ-CC Flow 是基于 Web 的 Claude Code 图形化前端，通过 **Claude Agent SDK** 将 Claude Code CLI 的全部能力以友好的 Web UI 呈现，支持：实时对话流、Tool Call 可视化、HIL 权限确认、Session 管理、上下文压缩、MCP 管理、Memory 管理、终端集成、Sub-Agent 树、工作流、团队协作、插件/技能市场等。
 
 ## 项目结构
 
 ```
-fufan-cc-flow-src/
+hz-cc-flow-src/
 ├── client/                   # 前端 React 19 + Vite + TypeScript
 │   └── src/
 │       ├── components/
@@ -64,8 +64,8 @@ fufan-cc-flow-src/
 
 ```bash
 # ⚠️ Windows 下 bash 环境中 pnpm 路径有问题，必须用 PowerShell 启动
-powershell -Command "cd D:\fufan-cc-flow-src; pnpm --filter server dev"   # 后端 :3001
-powershell -Command "cd D:\fufan-cc-flow-src; pnpm --filter client dev"   # 前端 :5173
+powershell -Command "cd D:\hz-cc-flow-src; pnpm --filter server dev"   # 后端 :3001
+powershell -Command "cd D:\hz-cc-flow-src; pnpm --filter client dev"   # 前端 :5173
 
 pnpm build            # 构建生产版本
 pnpm start            # 启动生产后端（需先 build）
@@ -178,17 +178,17 @@ await window.electronAPI.agent.executeJS("document.title");
 ### 构建命令
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File "D:\fufan-cc-flow-src\build-pack.ps1"
+powershell -ExecutionPolicy Bypass -File "D:\hz-cc-flow-src\build-pack.ps1"
 ```
 
-输出产物：`C:\FufanBuild\release\Fufan CC Flow Setup 1.0.0.exe`
+输出产物：`C:\HzBuild\release\HZ CC Flow Setup 1.0.0.exe`
 
 ### 架构要点
 
 - 生产模式：Electron 主进程通过 `child_process.fork()` + `ELECTRON_RUN_AS_NODE=1` 启动后端子进程
 - `ELECTRON_RESOURCES_PATH` 环境变量传给子进程，服务端 `app.ts` 用它定位 `client/dist` 静态文件
 - 原生文件夹对话框通过 `ipcMain.handle('show-open-dialog')` + `preload.ts` 暴露给前端，降级走 REST `/api/system/pick-folder`
-- 诊断日志：`%AppData%\fufan-cc-flow-electron\logs\server.log`
+- 诊断日志：`%AppData%\hz-cc-flow-electron\logs\server.log`
 
 ### 已知坑（已修复）
 

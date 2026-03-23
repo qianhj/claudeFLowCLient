@@ -427,7 +427,7 @@ export const useChatStore = create<ChatState>()(
     }),
     }),
     {
-      name: "fufan-cc-chat",
+      name: "hz-cc-chat",
       // Only persist currentSessionId — messages are loaded from JSONL on demand
       partialize: (state) => ({ currentSessionId: state.currentSessionId }),
     }

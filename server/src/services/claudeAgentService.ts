@@ -25,7 +25,7 @@ import type { PermissionRequest } from "../types/api.js";
 
 // 关键：清除嵌套会话检测环境变量
 // Claude Code CLI 检测到 CLAUDECODE 环境变量会拒绝启动（防止嵌套）
-// 当 Fufan-CC Flow 的 server 由 Claude Code 会话启动时，需要清除此变量
+// 当 HZ-CC Flow 的 server 由 Claude Code 会话启动时，需要清除此变量
 delete process.env.CLAUDECODE;
 
 export class ClaudeAgentService extends EventEmitter {

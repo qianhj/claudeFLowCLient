@@ -7,7 +7,7 @@ import { tmpdir } from "os";
 import { join } from "path";
 
 const DIVIDER = "─".repeat(60);
-const TEST_CWD = join(tmpdir(), "fufan-cc-sdk-test");
+const TEST_CWD = join(tmpdir(), "hz-cc-sdk-test");
 
 async function main() {
   console.log("╔══════════════════════════════════════════════════════════╗");

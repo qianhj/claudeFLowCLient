@@ -20,13 +20,13 @@ import os from "os";
 
 // 关键：如果在 Claude Code 会话内运行，需要清除嵌套检测环境变量
 // 否则 SDK spawn 的子进程会因 "cannot be launched inside another Claude Code session" 而失败
-// 生产环境中 Fufan-CC Flow 的 server 也需要同样处理
+// 生产环境中 HZ-CC Flow 的 server 也需要同样处理
 delete process.env.CLAUDECODE;
 
 const DIVIDER = "─".repeat(60);
 
 // 使用一个安全的临时目录作为 cwd
-const TEST_CWD = path.resolve(os.tmpdir(), "fufan-cc-sdk-test");
+const TEST_CWD = path.resolve(os.tmpdir(), "hz-cc-sdk-test");
 
 async function testBasicQuery() {
   console.log("\n" + DIVIDER);
@@ -188,7 +188,7 @@ async function testListSessions() {
 // ── Main ──
 async function main() {
   console.log("╔══════════════════════════════════════════════════════════╗");
-  console.log("║      Fufan-CC Flow · Agent SDK 可用性验证              ║");
+  console.log("║      HZ-CC Flow · Agent SDK 可用性验证              ║");
   console.log("╚══════════════════════════════════════════════════════════╝");
   console.log(`平台: ${process.platform} (${process.arch})`);
   console.log(`Node: ${process.version}`);

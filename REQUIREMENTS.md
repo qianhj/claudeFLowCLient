@@ -1,4 +1,4 @@
-# Fufan-CC Flow — 产品需求文档
+# HZ-CC Flow — 产品需求文档
 
 > 版本：1.0 | 状态：功能完整，持续迭代
 
@@ -12,7 +12,7 @@ Claude Code 是 Anthropic 推出的 AI 编程 CLI 工具，功能强大但对初
 
 ### 1.2 目标
 
-**Fufan-CC Flow** 在不改变 Claude Code 核心能力的前提下，为其提供一个：
+**HZ-CC Flow** 在不改变 Claude Code 核心能力的前提下，为其提供一个：
 
 - **可视化**的工具调用过程
 - **Web 化**的会话管理和权限交互

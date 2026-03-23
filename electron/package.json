@@ -1,9 +1,9 @@
 {
-  "name": "fufan-cc-flow-electron",
+  "name": "hz-cc-flow-electron",
   "private": true,
   "version": "1.0.0",
-  "description": "Fufan CC Flow - Claude Code GUI",
-  "author": "Fufan",
+  "description": "HZ CC Flow - Claude Code GUI",
+  "author": "HZ",
   "main": "dist/main.js",
   "scripts": {
     "build": "tsc",

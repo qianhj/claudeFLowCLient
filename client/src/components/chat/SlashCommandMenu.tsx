@@ -66,7 +66,7 @@ function exportConversation() {
   if (active.length === 0) return;
 
   const lines: string[] = [];
-  lines.push(`# Fufan-CC Flow 对话导出`);
+  lines.push(`# HZ-CC Flow 对话导出`);
   lines.push(`# Session: ${currentSessionId || "unknown"}`);
   lines.push(`# 时间: ${new Date().toLocaleString()}`);
   lines.push("");
