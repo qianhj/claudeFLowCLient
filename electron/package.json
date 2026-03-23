@@ -1,0 +1,21 @@
+{
+  "name": "fufan-cc-flow-electron",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Fufan CC Flow - Claude Code GUI",
+  "author": "Fufan",
+  "main": "dist/main.js",
+  "scripts": {
+    "build": "tsc",
+    "pack": "electron-builder --config electron-builder.yml",
+    "run:pack": "electron-builder --config electron-builder.yml",
+    "dev": "tsc && electron dist/main.js"
+  },
+  "devDependencies": {
+    "@electron/rebuild": "^3.6.0",
+    "@types/node": "^22.0.0",
+    "electron": "^32.0.0",
+    "electron-builder": "^25.0.0",
+    "typescript": "^5.7.0"
+  }
+}

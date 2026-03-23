@@ -1,0 +1,24 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build output
+dist/
+build/
+out/
+
+# Environment
+.env
+.env.local
+
+# Logs
+logs/
+*.log
+
+# Electron specific
+release/
+*.asar
+
+# IDE
+.vscode/
+.idea/

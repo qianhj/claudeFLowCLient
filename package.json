@@ -1,0 +1,21 @@
+{
+  "name": "fufan-cc-flow",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently -n server,client -c blue,green \"pnpm --filter server dev\" \"pnpm --filter client dev\"",
+    "build": "pnpm --filter server build && pnpm --filter client build",
+    "start": "pnpm --filter server start",
+    "lint": "pnpm --filter \"*\" lint",
+    "format": "prettier --write \"**/*.{ts,tsx,json,css}\"",
+    "electron:dev": "concurrently -n server,client,electron -c blue,green,cyan \"pnpm --filter server dev\" \"pnpm --filter client dev\" \"pnpm --filter fufan-cc-flow-electron dev\"",
+    "electron:build": "pnpm build && pnpm --filter fufan-cc-flow-electron build && pnpm --filter fufan-cc-flow-electron pack"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0",
+    "prettier": "^3.4.0",
+    "typescript": "^5.7.0"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": ["electron", "esbuild", "node-pty", "node-gyp"]
+  }
+}

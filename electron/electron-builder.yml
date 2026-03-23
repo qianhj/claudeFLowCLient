@@ -1,0 +1,56 @@
+appId: com.fufan.cc-flow
+productName: "Fufan CC Flow"
+copyright: "Copyright © 2024 Fufan"
+
+# 主进程入口（electron/dist/main.js 编译产物）
+files:
+  - dist/**/*
+  - "!dist/**/*.map"
+
+# 额外资源：后端 dist 和前端 dist 打包进 resources/
+extraResources:
+  - from: "../server/dist"
+    to: "server/dist"
+    filter:
+      - "**/*"
+  - from: "../server/package.json"
+    to: "server/package.json"
+  - from: "../server/node_modules"
+    to: "node_modules"
+    filter:
+      - "**/*"
+      - "!**/.cache/**"
+  - from: "../client/dist"
+    to: "client/dist"
+    filter:
+      - "**/*"
+
+directories:
+  output: "C:/FufanBuild/release"
+  buildResources: "assets"
+
+# Windows 打包配置
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+  # 不签名（无证书），禁用代码签名工具下载
+  signingHashAlgorithms: []
+  sign: null
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: "Fufan CC Flow"
+
+# 重建原生模块（node-pty）
+afterPack: "scripts/rebuild-native.js"
+
+# 不将 node_modules 自动打包（我们手动通过 extraResources 包含）
+asar: true
+asarUnpack:
+  - "**/*.node"
