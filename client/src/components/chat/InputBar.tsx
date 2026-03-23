@@ -7,6 +7,7 @@ import { useSystemStore } from "../../stores/systemStore";
 import { wsService } from "../../services/websocket";
 import { api } from "../../services/api";
 import SlashCommandMenu, { type SlashCommandMenuHandle, type SlashCommand } from "./SlashCommandMenu";
+import FileMentionMenu, { type FileMentionMenuHandle, type FileMention } from "./FileMentionMenu";
 import AttachmentPreview from "./AttachmentPreview";
 import type { Attachment } from "../../types/claude";
 
@@ -23,11 +24,15 @@ export default function InputBar() {
   const [text, setText] = useState("");
   const [slashMenuOpen, setSlashMenuOpen] = useState(false);
   const [slashQuery, setSlashQuery] = useState("");
+  const [mentionMenuOpen, setMentionMenuOpen] = useState(false);
+  const [mentionQuery, setMentionQuery] = useState("");
+  const [fileMentions, setFileMentions] = useState<FileMention[]>([]);
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [uploading, setUploading] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const slashMenuRef = useRef<SlashCommandMenuHandle>(null);
+  const mentionMenuRef = useRef<FileMentionMenuHandle>(null);
   const isStreaming = useChatStore((s) => s.isStreaming);
   const statusText = useChatStore((s) => s.statusText);
   const currentSessionId = useChatStore((s) => s.currentSessionId);
@@ -36,7 +41,7 @@ export default function InputBar() {
   const model = useConfigStore((s) => s.model);
   const effort = useConfigStore((s) => s.effort);
   const apiKey = useConfigStore((s) => s.apiKey);
-  const { runMode, setRunMode, setSettingsPageOpen, projectPath, prefillInput, setPrefillInput } = useUIStore();
+  const { runMode, setRunMode, setSettingsPageOpen, projectPath, prefillInput, setPrefillInput, fileAttachQueue, clearFileAttachQueue } = useUIStore();
   const { claudeInfo } = useSystemStore();
 
   const notInstalled = !claudeInfo?.installed;
@@ -50,6 +55,28 @@ export default function InputBar() {
       requestAnimationFrame(() => textareaRef.current?.focus());
     }
   }, [prefillInput, setPrefillInput]);
+
+  // Consume file attach queue from FileTree
+  useEffect(() => {
+    if (fileAttachQueue.length === 0) return;
+    setAttachments((prev) => {
+      const remaining = MAX_ATTACHMENTS - prev.length;
+      if (remaining <= 0) return prev;
+      const toAdd = fileAttachQueue.slice(0, remaining).map((filePath) => {
+        const name = filePath.replace(/\\/g, "/").split("/").pop() ?? filePath;
+        return {
+          id: `ref_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+          name,
+          type: "text/plain",
+          size: 0,
+          serverPath: filePath,
+        };
+      });
+      return [...prev, ...toAdd];
+    });
+    clearFileAttachQueue();
+    requestAnimationFrame(() => textareaRef.current?.focus());
+  }, [fileAttachQueue.length, clearFileAttachQueue]);
 
   const cycleRunMode = () => {
     const idx = RUN_MODES.findIndex((m) => m.id === runMode);
@@ -106,7 +133,23 @@ export default function InputBar() {
     const prompt = text.trim();
     if (!prompt || isStreaming || notInstalled || noProject) return;
 
-    const currentAttachments = attachments.length > 0 ? [...attachments] : undefined;
+    // Combine uploaded attachments with file mentions
+    const allAttachments = [...attachments];
+
+    // Add file mentions that aren't already in attachments
+    for (const mention of fileMentions) {
+      if (!allAttachments.some((a) => a.serverPath === mention.path)) {
+        allAttachments.push({
+          id: `mention_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+          name: mention.name,
+          type: "text/plain",
+          size: 0,
+          serverPath: mention.path,
+        });
+      }
+    }
+
+    const currentAttachments = allAttachments.length > 0 ? allAttachments : undefined;
     const attachmentPaths = currentAttachments?.map((a) => a.serverPath).filter(Boolean) as string[] | undefined;
 
     useChatStore.getState().addUserMessage(prompt, currentAttachments);
@@ -137,12 +180,55 @@ export default function InputBar() {
       if (a.previewUrl) URL.revokeObjectURL(a.previewUrl);
     }
     setAttachments([]);
+    setFileMentions([]);
     if (textareaRef.current) textareaRef.current.style.height = "auto";
-  }, [text, isStreaming, model, effort, runMode, notInstalled, noProject, currentSessionId, pendingFork, attachments]);
+  }, [text, isStreaming, model, effort, runMode, notInstalled, noProject, currentSessionId, pendingFork, attachments, fileMentions]);
 
   const handleAbort = useCallback(() => wsService.send("abort", {}), []);
 
+  const handlePaste = useCallback(async (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    if (!projectPath || attachments.length >= MAX_ATTACHMENTS) return;
+    const imageItem = Array.from(e.clipboardData.items).find((item) => item.type.startsWith("image/"));
+    if (!imageItem) return;
+    e.preventDefault();
+    const file = imageItem.getAsFile();
+    if (!file) return;
+    setUploading(true);
+    setUploadError("");
+    try {
+      const meta = await api.uploadAttachment(file, projectPath);
+      const previewUrl = URL.createObjectURL(file);
+      setAttachments((prev) => [...prev, { ...meta, previewUrl }]);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "上传失败";
+      setUploadError(msg);
+      setTimeout(() => setUploadError(""), 5000);
+    } finally {
+      setUploading(false);
+    }
+  }, [projectPath, attachments.length]);
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
+    // Forward navigation keys to mention menu when open
+    if (mentionMenuOpen && mentionMenuRef.current) {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        mentionMenuRef.current.handleKey(e.key);
+        return;
+      }
+      const forwarded = ["ArrowUp", "ArrowDown", "Tab", "Escape"];
+      if (forwarded.includes(e.key)) {
+        e.preventDefault();
+        mentionMenuRef.current.handleKey(e.key);
+        return;
+      }
+      if (e.key === "Backspace" && mentionQuery === "") {
+        e.preventDefault();
+        mentionMenuRef.current.handleKey("Backspace");
+        return;
+      }
+    }
+
     // Forward navigation keys to slash menu when open
     if (slashMenuOpen && slashMenuRef.current) {
       if (e.key === "Enter" && !e.shiftKey) {
@@ -179,13 +265,27 @@ export default function InputBar() {
     const val = e.target.value;
     setText(val);
 
+    const cursorPos = e.target.selectionStart || 0;
+    const textBeforeCursor = val.slice(0, cursorPos);
+
     // Slash command detection: show menu only for the command part (before first space)
     if (val.startsWith("/") && !val.includes(" ")) {
       setSlashMenuOpen(true);
       setSlashQuery(val.slice(1)); // everything after "/"
+      setMentionMenuOpen(false);
     } else {
       setSlashMenuOpen(false);
       setSlashQuery("");
+
+      // File mention detection: look for @ followed by word characters before cursor
+      const mentionMatch = textBeforeCursor.match(/@([\w./-]*)$/);
+      if (mentionMatch) {
+        setMentionMenuOpen(true);
+        setMentionQuery(mentionMatch[1]);
+      } else {
+        setMentionMenuOpen(false);
+        setMentionQuery("");
+      }
     }
 
     const el = e.target;
@@ -254,6 +354,47 @@ export default function InputBar() {
     setSlashQuery("");
   }, []);
 
+  const handleMentionSelect = useCallback((file: FileMention) => {
+    // Insert the filename after @, replacing the query part
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    const cursorPos = textarea.selectionStart || 0;
+    const textBeforeCursor = text.slice(0, cursorPos);
+    const textAfterCursor = text.slice(cursorPos);
+
+    // Find the @ that started this mention
+    const lastAtIndex = textBeforeCursor.lastIndexOf("@");
+    if (lastAtIndex === -1) return;
+
+    // Replace @query with @filename
+    const newTextBefore = textBeforeCursor.slice(0, lastAtIndex) + `@${file.name}`;
+    const newText = newTextBefore + textAfterCursor;
+
+    setText(newText);
+    setMentionMenuOpen(false);
+    setMentionQuery("");
+
+    // Track this file mention
+    setFileMentions((prev) => {
+      // Don't add duplicates
+      if (prev.some((m) => m.path === file.path)) return prev;
+      return [...prev, file];
+    });
+
+    // Move cursor after the inserted filename
+    requestAnimationFrame(() => {
+      const newCursorPos = newTextBefore.length;
+      textarea.setSelectionRange(newCursorPos, newCursorPos);
+      textarea.focus();
+    });
+  }, [text]);
+
+  const handleMentionDismiss = useCallback(() => {
+    setMentionMenuOpen(false);
+    setMentionQuery("");
+  }, []);
+
   const handleOpenSetup = () => setSettingsPageOpen(true);
 
   return (
@@ -267,6 +408,16 @@ export default function InputBar() {
             query={slashQuery}
             onSelect={handleSlashSelect}
             onDismiss={handleSlashDismiss}
+          />
+        )}
+
+        {/* File mention menu */}
+        {mentionMenuOpen && !isStreaming && (
+          <FileMentionMenu
+            ref={mentionMenuRef}
+            query={mentionQuery}
+            onSelect={handleMentionSelect}
+            onDismiss={handleMentionDismiss}
           />
         )}
 
@@ -287,6 +438,7 @@ export default function InputBar() {
             value={text}
             onChange={handleInput}
             onKeyDown={handleKeyDown}
+            onPaste={handlePaste}
             placeholder={
               notInstalled
                 ? "请先安装 Claude Code 才能开始对话..."
@@ -304,8 +456,21 @@ export default function InputBar() {
 
           {/* Attachment preview */}
           <AttachmentPreview
-            attachments={attachments}
-            onRemove={handleRemoveAttachment}
+            attachments={[...attachments, ...fileMentions.map(m => ({
+              id: `mention_${m.path}`,
+              name: `@${m.name}`,
+              type: "text/plain",
+              size: 0,
+              serverPath: m.path,
+            }))]}
+            onRemove={(id) => {
+              if (id.startsWith("mention_")) {
+                const path = id.slice(8); // Remove "mention_" prefix
+                setFileMentions((prev) => prev.filter((m) => m.path !== path));
+              } else {
+                handleRemoveAttachment(id);
+              }
+            }}
             uploading={uploading}
           />
 
