@@ -274,7 +274,7 @@ export default function FileTree({ onFileClickOverride }: { onFileClickOverride?
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto px-1">
+      <div className="flex-1 overflow-auto px-1" style={{ scrollbarWidth: "thin", scrollbarColor: "rgba(255,255,255,0.1) transparent" }}>
         {treeLoading ? (
           <div className="flex items-center justify-center py-8">
             <Loader2 size={16} className="animate-spin text-slate-500" />
@@ -567,10 +567,22 @@ function TreeNode({
     );
   }
 
+  const handleDragStart = (e: React.DragEvent) => {
+    if (isDir) {
+      e.preventDefault();
+      return;
+    }
+    e.dataTransfer.setData("text/plain", node.path);
+    e.dataTransfer.setData("file-path", node.path);
+    e.dataTransfer.effectAllowed = "copy";
+  };
+
   return (
     <div>
       <div className="group relative">
         <button
+          draggable={!isDir}
+          onDragStart={handleDragStart}
           onClick={() => {
             if (isDir) {
               handleToggle();
@@ -579,14 +591,15 @@ function TreeNode({
             }
           }}
           onContextMenu={(e) => onContextMenu(e, node.path, node.name, isDir)}
-          className={`w-full flex items-center gap-2 px-2 py-1 text-sm rounded transition-colors ${
+          className={`w-full flex items-center gap-2 px-2 py-1 text-sm rounded transition-colors cursor-pointer whitespace-nowrap ${
             isDir
               ? "text-slate-300 hover:bg-white/5"
               : isModified
                 ? "text-amber-glow hover:bg-white/5"
                 : "text-slate-400 hover:text-slate-200 hover:bg-white/5"
-          }`}
+          } ${!isDir ? "cursor-grab active:cursor-grabbing" : ""}`}
           style={{ paddingLeft: `${depth * 16 + 8}px`, paddingRight: !isDir ? "28px" : undefined }}
+          title={!isDir ? "拖拽到编辑器打开" : undefined}
         >
           {/* Expand/collapse arrow (dirs only) */}
           {isDir ? (

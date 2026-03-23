@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from "react";
-import { Square, Paperclip, ArrowUp, Sparkles, Wrench, ShieldAlert } from "lucide-react";
+import { Square, Paperclip, ArrowUp, Sparkles, Wrench, ShieldAlert, Code } from "lucide-react";
 import { useChatStore } from "../../stores/chatStore";
 import { useConfigStore } from "../../stores/configStore";
 import { useUIStore, type RunMode } from "../../stores/uiStore";
@@ -41,7 +41,7 @@ export default function InputBar() {
   const model = useConfigStore((s) => s.model);
   const effort = useConfigStore((s) => s.effort);
   const apiKey = useConfigStore((s) => s.apiKey);
-  const { runMode, setRunMode, setSettingsPageOpen, projectPath, prefillInput, setPrefillInput, fileAttachQueue, clearFileAttachQueue } = useUIStore();
+  const { runMode, setRunMode, setSettingsPageOpen, projectPath, prefillInput, setPrefillInput, fileAttachQueue, clearFileAttachQueue, editorSelection, clearEditorSelection } = useUIStore();
   const { claudeInfo } = useSystemStore();
 
   const notInstalled = !claudeInfo?.installed;
@@ -395,6 +395,24 @@ export default function InputBar() {
     setMentionQuery("");
   }, []);
 
+  // Send selected code from editor to chat
+  const handleSendSelection = useCallback(() => {
+    if (!editorSelection) return;
+
+    const { text, filePath, lineStart, lineEnd } = editorSelection;
+    const fileName = filePath.split(/[/\\]/).pop() || "";
+
+    const contextText = `[${fileName}:${lineStart}-${lineEnd}]\n\`\`\`\n${text}\n\`\`\`\n\n${text.trim()}`;
+
+    setText((prev) => {
+      const newText = prev ? `${prev}\n\n${contextText}` : contextText;
+      return newText;
+    });
+
+    clearEditorSelection();
+    requestAnimationFrame(() => textareaRef.current?.focus());
+  }, [editorSelection, clearEditorSelection]);
+
   const handleOpenSetup = () => setSettingsPageOpen(true);
 
   return (
@@ -561,6 +579,19 @@ export default function InputBar() {
               <span className="w-1.5 h-1.5 rounded-full bg-current flex-shrink-0" />
               {runMode === "default" ? "Default" : runMode === "plan" ? "Plan" : "Edit"}
             </button>
+
+            {/* Send selected code button */}
+            {editorSelection && (
+              <button
+                onClick={handleSendSelection}
+                disabled={isStreaming}
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium border border-purple-bright/30 bg-purple-glow/10 text-purple-bright hover:opacity-90 transition-all disabled:opacity-30"
+                title={`发送选中的代码 (${editorSelection.filePath.split(/[/\\]/).pop()}:${editorSelection.lineStart}-${editorSelection.lineEnd})`}
+              >
+                <Code size={12} />
+                <span className="hidden sm:inline">选中代码</span>
+              </button>
+            )}
           </div>
 
           {/* Right: hint or not-installed / no-project CTA */}

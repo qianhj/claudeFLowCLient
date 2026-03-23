@@ -11,8 +11,9 @@ import { html } from "@codemirror/lang-html";
 import { json } from "@codemirror/lang-json";
 import { markdown } from "@codemirror/lang-markdown";
 import { rust } from "@codemirror/lang-rust";
-import { X, MoreHorizontal, FileText, GripVertical } from "lucide-react";
+import { X, MoreHorizontal, FileText, GripVertical, FolderOpen } from "lucide-react";
 import { useFileStore } from "../../stores/fileStore";
+import { useUIStore } from "../../stores/uiStore";
 import { api } from "../../services/api";
 
 // ── Language detection ──────────────────────────────────────────────────────
@@ -105,9 +106,10 @@ interface EditorInstanceProps {
   content: string;
   isActive: boolean;
   onDirtyChange: (dirty: boolean) => void;
+  onSelectionChange?: (selection: { text: string; filePath: string; lineStart: number; lineEnd: number } | null) => void;
 }
 
-function EditorInstance({ filePath, content, isActive, onDirtyChange }: EditorInstanceProps) {
+function EditorInstance({ filePath, content, isActive, onDirtyChange, onSelectionChange }: EditorInstanceProps) {
   const editorRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
   const initialContentRef = useRef(content);
@@ -130,6 +132,17 @@ function EditorInstance({ filePath, content, isActive, onDirtyChange }: EditorIn
             if (update.docChanged) {
               const dirty = update.state.doc.toString() !== initialContentRef.current;
               onDirtyChange(dirty);
+            }
+            if (update.selectionSet && onSelectionChange) {
+              const { from, to } = update.state.selection.main;
+              if (from !== to) {
+                const text = update.state.doc.sliceString(from, to);
+                const lineStart = update.state.doc.lineAt(from).number;
+                const lineEnd = update.state.doc.lineAt(to).number;
+                onSelectionChange({ text, filePath, lineStart, lineEnd });
+              } else {
+                onSelectionChange(null);
+              }
             }
           }),
         ],
@@ -173,6 +186,11 @@ export default function EditorArea() {
   const [dirtyFiles, setDirtyFiles] = useState<Set<string>>(new Set());
   const tabsRef = useRef<HTMLDivElement>(null);
   const [showMenu, setShowMenu] = useState<string | null>(null);
+  const [isDragOver, setIsDragOver] = useState(false);
+  const { openFile } = useFileStore();
+  const projectPath = useUIStore((s) => s.projectPath);
+  const setEditorSelection = useUIStore((s) => s.setEditorSelection);
+  const clearEditorSelection = useUIStore((s) => s.clearEditorSelection);
 
   const handleDirtyChange = useCallback((filePath: string, dirty: boolean) => {
     setDirtyFiles(prev => {
@@ -200,13 +218,62 @@ export default function EditorArea() {
     }
   };
 
+  // ── Drag & Drop Handlers ─────────────────────────────────────────────────
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+
+    // Try to get file path from data transfer
+    const filePath = e.dataTransfer.getData("text/plain") || e.dataTransfer.getData("file-path");
+    if (filePath && projectPath) {
+      // Check if it's within project
+      if (filePath.startsWith(projectPath)) {
+        openFile(filePath);
+      }
+    }
+
+    // Also try to handle external files dropped from OS
+    const files = Array.from(e.dataTransfer.files);
+    if (files.length > 0 && projectPath) {
+      // For external files, we'd need to copy them first
+      // This is a simplified version - just log for now
+      console.log("Dropped external files:", files.map(f => f.name));
+    }
+  };
+
   if (openFiles.length === 0) {
     return (
-      <div className="h-full flex items-center justify-center text-slate-600">
-        <div className="text-center">
-          <FileText size={48} className="mx-auto mb-4 opacity-20" />
-          <p className="text-sm">从左侧文件树选择文件打开</p>
-          <p className="text-xs mt-2 opacity-60">支持多标签编辑、Ctrl+S 保存</p>
+      <div
+        className={`h-full flex items-center justify-center transition-all duration-200 ${
+          isDragOver ? "bg-purple-glow/10" : ""
+        }`}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+      >
+        <div className={`text-center transition-all duration-200 ${isDragOver ? "scale-110" : ""}`}>
+          {isDragOver ? (
+            <FolderOpen size={48} className="mx-auto mb-4 text-purple-bright" />
+          ) : (
+            <FileText size={48} className="mx-auto mb-4 text-slate-600 opacity-20" />
+          )}
+          <p className={`text-sm ${isDragOver ? "text-purple-bright" : "text-slate-600"}`}>
+            {isDragOver ? "释放以打开文件" : "从左侧文件树选择文件打开"}
+          </p>
+          <p className="text-xs mt-2 text-slate-600 opacity-60">支持拖拽文件、多标签编辑、Ctrl+S 保存</p>
         </div>
       </div>
     );
@@ -296,7 +363,14 @@ export default function EditorArea() {
       </div>
 
       {/* ── Editor Content ──────────────────────────────────────────────── */}
-      <div className="flex-1 relative overflow-hidden">
+      <div
+        className={`flex-1 relative overflow-hidden transition-all duration-200 ${
+          isDragOver ? "bg-purple-glow/10" : ""
+        }`}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+      >
         {openFiles.map((file) => {
           const isActive = file.path === activeFilePath;
           return (
@@ -322,6 +396,13 @@ export default function EditorArea() {
                   content={file.content.content}
                   isActive={isActive}
                   onDirtyChange={(dirty) => handleDirtyChange(file.path, dirty)}
+                  onSelectionChange={(sel) => {
+                    if (sel) {
+                      setEditorSelection(sel);
+                    } else if (activeFilePath === file.path) {
+                      clearEditorSelection();
+                    }
+                  }}
                 />
               ) : null}
             </div>

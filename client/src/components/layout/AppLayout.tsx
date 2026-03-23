@@ -8,6 +8,7 @@ import SettingsModal from "../modals/SettingsModal";
 import FolderBrowserModal from "../modals/FolderBrowserModal";
 import SkillBrowserModal from "../modals/SkillBrowserModal";
 import CreateSkillModal from "../modals/CreateSkillModal";
+import CommandPalette, { useCommandPalette } from "../modals/CommandPalette";
 import { useSystemStore } from "../../stores/systemStore";
 import { useFileStore } from "../../stores/fileStore";
 import { useUIStore } from "../../stores/uiStore";
@@ -21,6 +22,7 @@ export default function AppLayout() {
   const { openFiles, activeFilePath } = useFileStore();
   const { selectedFilePath } = useUIStore();
   const [mainView, setMainView] = useState<MainView>("chat");
+  const { isOpen: commandPaletteOpen, close: closeCommandPalette } = useCommandPalette();
 
   useEffect(() => {
     loadClaudeInfo();
@@ -73,17 +75,6 @@ export default function AppLayout() {
             {/* View Switcher Tabs */}
             <div className="flex items-center border-b border-white/5 bg-[#0d0b18] flex-shrink-0">
               <button
-                onClick={() => setMainView("chat")}
-                className={`flex items-center gap-2 px-4 py-2 text-xs font-medium transition-colors border-b-2
-                  ${mainView === "chat"
-                    ? "text-slate-200 border-b-purple-glow bg-[#13111C]"
-                    : "text-slate-500 border-b-transparent hover:text-slate-300 hover:bg-white/5"
-                  }`}
-              >
-                <MessageSquare size={14} />
-                对话
-              </button>
-              <button
                 onClick={() => setMainView("editor")}
                 className={`flex items-center gap-2 px-4 py-2 text-xs font-medium transition-colors border-b-2
                   ${mainView === "editor"
@@ -98,6 +89,17 @@ export default function AppLayout() {
                     {openFiles.length}
                   </span>
                 )}
+              </button>
+              <button
+                onClick={() => setMainView("chat")}
+                className={`flex items-center gap-2 px-4 py-2 text-xs font-medium transition-colors border-b-2
+                  ${mainView === "chat"
+                    ? "text-slate-200 border-b-purple-glow bg-[#13111C]"
+                    : "text-slate-500 border-b-transparent hover:text-slate-300 hover:bg-white/5"
+                  }`}
+              >
+                <MessageSquare size={14} />
+                对话
               </button>
               {openFiles.length > 0 && (
                 <button

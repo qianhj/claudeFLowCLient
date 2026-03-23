@@ -36,6 +36,10 @@ function getFileIcon(name: string) {
     case "py":
     case "go":
     case "rs":
+    case "java":
+    case "class":
+    case "jar":
+    case "kt":
       return FileCode2;
     case "md":
     case "mdx":
@@ -51,6 +55,27 @@ function getFileIcon(name: string) {
     default:
       return File;
   }
+}
+
+// Smart path display: show parent dir + filename, truncate if too long
+function getShortPath(fullPath: string, projectPath: string): string {
+  const relativePath = fullPath.replace(projectPath, "").replace(/^[/\\]/, "");
+  const parts = relativePath.split(/[/\\]/);
+
+  if (parts.length <= 2) {
+    return relativePath;
+  }
+
+  // Show: .../parent/filename
+  const fileName = parts[parts.length - 1];
+  const parentDir = parts[parts.length - 2];
+  const firstDir = parts[0];
+
+  if (parts.length === 3) {
+    return `${firstDir}/${parentDir}/${fileName}`;
+  }
+
+  return `.../${parentDir}/${fileName}`;
 }
 
 // Flatten file tree to get all file paths
@@ -186,8 +211,8 @@ export default forwardRef<FileMentionMenuHandle, FileMentionMenuProps>(
                     <div className={`text-sm truncate ${isSelected ? "text-white" : "text-slate-300"}`}>
                       {file.name}
                     </div>
-                    <div className="text-[10px] text-slate-600 truncate font-mono">
-                      {file.path.replace(projectPath, "").slice(1)}
+                    <div className="text-[10px] text-slate-600 truncate font-mono" title={file.path.replace(projectPath, "").slice(1)}>
+                      {getShortPath(file.path, projectPath)}
                     </div>
                   </div>
                 </button>

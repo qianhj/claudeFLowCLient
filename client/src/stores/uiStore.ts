@@ -53,6 +53,9 @@ interface UIState {
   // Selected file in tree (hover/selection indicator)
   selectedFilePath: string | null;
 
+  // Editor selection (for sending to chat)
+  editorSelection: { text: string; filePath: string; lineStart: number; lineEnd: number } | null;
+
   // Actions
   toggleSidebar: () => void;
   setSidebarWidth: (w: number) => void;
@@ -89,6 +92,8 @@ interface UIState {
   enqueueFileAttach: (path: string) => void;
   clearFileAttachQueue: () => void;
   setSelectedFilePath: (path: string | null) => void;
+  setEditorSelection: (selection: { text: string; filePath: string; lineStart: number; lineEnd: number } | null) => void;
+  clearEditorSelection: () => void;
 }
 
 export const useUIStore = create<UIState>((set) => ({
@@ -122,6 +127,7 @@ export const useUIStore = create<UIState>((set) => ({
   prefillInput: "",
   fileAttachQueue: [],
   selectedFilePath: null,
+  editorSelection: null,
 
   toggleSidebar: () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),
   setSidebarWidth: (w) => set({ sidebarWidth: w }),
@@ -159,4 +165,6 @@ export const useUIStore = create<UIState>((set) => ({
   enqueueFileAttach: (path) => set((s) => ({ fileAttachQueue: [...s.fileAttachQueue, path] })),
   clearFileAttachQueue: () => set({ fileAttachQueue: [] }),
   setSelectedFilePath: (path) => set({ selectedFilePath: path }),
+  setEditorSelection: (selection) => set({ editorSelection: selection }),
+  clearEditorSelection: () => set({ editorSelection: null }),
 }));
