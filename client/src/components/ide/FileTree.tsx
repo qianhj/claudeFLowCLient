@@ -118,7 +118,8 @@ export default function FileTree({ onFileClickOverride }: { onFileClickOverride?
     searchFiles,
   } = useFileStore();
   const projectPath = useUIStore((s) => s.projectPath);
-  const setRightPanelOpen = useUIStore((s) => s.setRightPanelOpen);
+  const enqueueFileAttach = useUIStore((s) => s.enqueueFileAttach);
+  const setSelectedFilePath = useUIStore((s) => s.setSelectedFilePath);
 
   const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
   const [inlineInput, setInlineInput] = useState<InlineInputState | null>(null);
@@ -143,15 +144,18 @@ export default function FileTree({ onFileClickOverride }: { onFileClickOverride?
 
   const handleFileClick = useCallback(
     (filePath: string) => {
-      if (onFileClickOverride) {
-        openFile(filePath);
-        onFileClickOverride(filePath);
-      } else {
-        openFile(filePath);
-        setRightPanelOpen(true);
-      }
+      openFile(filePath);
+      setSelectedFilePath(filePath);
+      onFileClickOverride?.(filePath);
     },
-    [onFileClickOverride, openFile, setRightPanelOpen]
+    [onFileClickOverride, openFile, setSelectedFilePath]
+  );
+
+  const handleAddToChat = useCallback(
+    (filePath: string) => {
+      enqueueFileAttach(filePath);
+    },
+    [enqueueFileAttach]
   );
 
   const handleSearch = useCallback(
@@ -318,6 +322,7 @@ export default function FileTree({ onFileClickOverride }: { onFileClickOverride?
                 node={node}
                 depth={0}
                 onFileClick={handleFileClick}
+                onAddToChat={handleAddToChat}
                 modifiedFiles={modifiedFiles}
                 onContextMenu={handleContextMenu}
                 inlineInput={inlineInput}
@@ -492,6 +497,7 @@ function TreeNode({
   node,
   depth,
   onFileClick,
+  onAddToChat,
   modifiedFiles,
   onContextMenu,
   inlineInput,
@@ -501,6 +507,7 @@ function TreeNode({
   node: FileNode;
   depth: number;
   onFileClick: (path: string) => void;
+  onAddToChat: (path: string) => void;
   modifiedFiles: Set<string>;
   onContextMenu: (e: React.MouseEvent, nodePath: string, nodeName: string, isDir: boolean) => void;
   inlineInput: InlineInputState | null;
@@ -562,56 +569,72 @@ function TreeNode({
 
   return (
     <div>
-      <button
-        onClick={() => {
-          if (isDir) {
-            handleToggle();
-          } else {
-            onFileClick(node.path);
-          }
-        }}
-        onContextMenu={(e) => onContextMenu(e, node.path, node.name, isDir)}
-        className={`w-full flex items-center gap-2 px-2 py-1 text-sm rounded transition-colors ${
-          isDir
-            ? "text-slate-300 hover:bg-white/5"
-            : isModified
-              ? "text-amber-glow hover:bg-white/5"
-              : "text-slate-400 hover:text-slate-200 hover:bg-white/5"
-        }`}
-        style={{ paddingLeft: `${depth * 16 + 8}px` }}
-      >
-        {/* Expand/collapse arrow (dirs only) */}
-        {isDir ? (
-          lazyLoading ? (
-            <Loader2 size={14} className="text-slate-500 flex-shrink-0 animate-spin" />
-          ) : expanded ? (
-            <ChevronDown size={14} className="text-slate-500 flex-shrink-0" />
+      <div className="group relative">
+        <button
+          onClick={() => {
+            if (isDir) {
+              handleToggle();
+            } else {
+              onFileClick(node.path);
+            }
+          }}
+          onContextMenu={(e) => onContextMenu(e, node.path, node.name, isDir)}
+          className={`w-full flex items-center gap-2 px-2 py-1 text-sm rounded transition-colors ${
+            isDir
+              ? "text-slate-300 hover:bg-white/5"
+              : isModified
+                ? "text-amber-glow hover:bg-white/5"
+                : "text-slate-400 hover:text-slate-200 hover:bg-white/5"
+          }`}
+          style={{ paddingLeft: `${depth * 16 + 8}px`, paddingRight: !isDir ? "28px" : undefined }}
+        >
+          {/* Expand/collapse arrow (dirs only) */}
+          {isDir ? (
+            lazyLoading ? (
+              <Loader2 size={14} className="text-slate-500 flex-shrink-0 animate-spin" />
+            ) : expanded ? (
+              <ChevronDown size={14} className="text-slate-500 flex-shrink-0" />
+            ) : (
+              <ChevronRight size={14} className="text-slate-500 flex-shrink-0" />
+            )
           ) : (
-            <ChevronRight size={14} className="text-slate-500 flex-shrink-0" />
-          )
-        ) : (
-          <span className="w-3.5 flex-shrink-0" />
-        )}
+            <span className="w-3.5 flex-shrink-0" />
+          )}
 
-        {/* Icon */}
-        {isDir ? (
-          expanded ? (
-            <FolderOpen size={16} className="text-blue-400 flex-shrink-0" />
+          {/* Icon */}
+          {isDir ? (
+            expanded ? (
+              <FolderOpen size={16} className="text-blue-400 flex-shrink-0" />
+            ) : (
+              <Folder size={16} className="text-blue-400 flex-shrink-0" />
+            )
           ) : (
-            <Folder size={16} className="text-blue-400 flex-shrink-0" />
-          )
-        ) : (
-          <FileIcon size={16} className={`${fi?.color ?? "text-slate-500"} flex-shrink-0`} />
-        )}
+            <FileIcon size={16} className={`${fi?.color ?? "text-slate-500"} flex-shrink-0`} />
+          )}
 
-        {/* Name */}
-        <span className="truncate">{node.name}</span>
+          {/* Name */}
+          <span className="truncate">{node.name}</span>
 
-        {/* Modified star */}
-        {isModified && (
-          <Star size={9} className="text-amber-glow flex-shrink-0 ml-auto" />
+          {/* Modified star */}
+          {isModified && (
+            <Star size={9} className="text-amber-glow flex-shrink-0 ml-auto" />
+          )}
+        </button>
+
+        {/* Add to chat button — files only, revealed on row hover */}
+        {!isDir && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onAddToChat(node.path);
+            }}
+            title="添加到对话"
+            className="absolute right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-purple-glow/20 text-slate-500 hover:text-purple-bright transition-all"
+          >
+            <Plus size={12} />
+          </button>
         )}
-      </button>
+      </div>
 
       {isDir && expanded && (
         <div className="border-l border-white/10 ml-5 pl-1 flex flex-col gap-0.5">
@@ -631,6 +654,7 @@ function TreeNode({
               node={child}
               depth={depth + 1}
               onFileClick={onFileClick}
+              onAddToChat={onAddToChat}
               modifiedFiles={modifiedFiles}
               onContextMenu={onContextMenu}
               inlineInput={inlineInput}

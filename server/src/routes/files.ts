@@ -199,6 +199,22 @@ router.delete("/delete", async (req, res) => {
   }
 });
 
+// PUT /api/files/content  body: { path: string, content: string }
+router.put("/content", async (req, res) => {
+  const filePath = req.body?.path as string | undefined;
+  const content = req.body?.content as string | undefined;
+  if (!filePath || content === undefined) {
+    return res.status(400).json({ error: "path and content are required" });
+  }
+  try {
+    const normalized = path.normalize(filePath);
+    await fs.writeFile(normalized, content, "utf-8");
+    return res.json({ success: true, path: normalized });
+  } catch (err) {
+    res.status(500).json({ error: String(err) });
+  }
+});
+
 // GET /api/files/search?path=/project&query=auth
 router.get("/search", async (req, res) => {
   const rootPath = (req.query.path as string) || process.cwd();

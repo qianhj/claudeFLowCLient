@@ -34,6 +34,8 @@ if ($LASTEXITCODE -ne 0) { throw "client build failed" }
 
 Write-Host "[5/6] compile electron..." -ForegroundColor Cyan
 Set-Location "$ROOT\electron"
+npm install
+if ($LASTEXITCODE -ne 0) { throw "electron npm install failed" }
 node ".\node_modules\typescript\bin\tsc"
 if ($LASTEXITCODE -ne 0) { throw "electron tsc failed" }
 

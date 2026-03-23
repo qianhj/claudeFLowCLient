@@ -47,6 +47,12 @@ interface UIState {
   // Agent prefill (set by AgentManager "launch" button, consumed by InputBar)
   prefillInput: string;
 
+  // File attach queue (set by FileTree, consumed by InputBar)
+  fileAttachQueue: string[];
+
+  // Selected file in tree (hover/selection indicator)
+  selectedFilePath: string | null;
+
   // Actions
   toggleSidebar: () => void;
   setSidebarWidth: (w: number) => void;
@@ -80,6 +86,9 @@ interface UIState {
   setExtensionsSubTab: (tab: "mcp" | "skills" | "plugins" | "memory" | "hooks" | "desktop") => void;
 
   setPrefillInput: (text: string) => void;
+  enqueueFileAttach: (path: string) => void;
+  clearFileAttachQueue: () => void;
+  setSelectedFilePath: (path: string | null) => void;
 }
 
 export const useUIStore = create<UIState>((set) => ({
@@ -111,6 +120,8 @@ export const useUIStore = create<UIState>((set) => ({
   createSkillModalOpen: false,
   extensionsSubTab: "mcp",
   prefillInput: "",
+  fileAttachQueue: [],
+  selectedFilePath: null,
 
   toggleSidebar: () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),
   setSidebarWidth: (w) => set({ sidebarWidth: w }),
@@ -145,4 +156,7 @@ export const useUIStore = create<UIState>((set) => ({
   setExtensionsSubTab: (tab) => set({ extensionsSubTab: tab }),
 
   setPrefillInput: (text) => set({ prefillInput: text }),
+  enqueueFileAttach: (path) => set((s) => ({ fileAttachQueue: [...s.fileAttachQueue, path] })),
+  clearFileAttachQueue: () => set({ fileAttachQueue: [] }),
+  setSelectedFilePath: (path) => set({ selectedFilePath: path }),
 }));

@@ -1,5 +1,6 @@
 import { app, BrowserWindow, shell, Menu, ipcMain, dialog, globalShortcut, screen } from "electron";
 import { fork, execSync, ChildProcess } from "child_process";
+import { autoUpdater } from "electron-updater";
 import path from "path";
 import http from "http";
 import fs from "fs";
@@ -175,6 +176,10 @@ async function createWindow(): Promise<void> {
     mainWindow?.show();
     if (isDev) {
       mainWindow?.webContents.openDevTools();
+    } else {
+      // 延迟 3 秒后检查更新，避免阻塞启动
+      setupAutoUpdater();
+      setTimeout(() => autoUpdater.checkForUpdates(), 3000);
     }
   });
 
@@ -394,6 +399,64 @@ ipcMain.handle("agent:menu-list", () => {
 
 // ---------- 去掉默认菜单栏 ----------
 Menu.setApplicationMenu(null);
+
+// ---------- 自动更新 ----------
+function setupAutoUpdater(): void {
+  autoUpdater.autoDownload = false;
+  autoUpdater.autoInstallOnAppQuit = true;
+
+  autoUpdater.on("checking-for-update", () => {
+    writeLog("[updater] Checking for update...");
+  });
+
+  autoUpdater.on("update-available", (info) => {
+    writeLog(`[updater] Update available: ${info.version}`);
+    const win = mainWindow ?? BrowserWindow.getFocusedWindow();
+    const opts: Electron.MessageBoxOptions = {
+      type: "info",
+      title: "发现新版本",
+      message: `新版本 ${info.version} 可用`,
+      detail: `当前版本：${app.getVersion()}\n新版本：${info.version}\n\n是否立即下载？`,
+      buttons: ["下载更新", "稍后"],
+      defaultId: 0,
+    };
+    (win ? dialog.showMessageBox(win, opts) : dialog.showMessageBox(opts)).then(({ response }) => {
+      if (response === 0) autoUpdater.downloadUpdate();
+    });
+  });
+
+  autoUpdater.on("update-not-available", () => {
+    writeLog("[updater] Already up to date");
+  });
+
+  autoUpdater.on("download-progress", (progress) => {
+    const pct = Math.round(progress.percent);
+    writeLog(`[updater] Downloading... ${pct}%`);
+    mainWindow?.setProgressBar(progress.percent / 100);
+  });
+
+  autoUpdater.on("update-downloaded", () => {
+    writeLog("[updater] Update downloaded");
+    mainWindow?.setProgressBar(-1);
+    const win = mainWindow ?? BrowserWindow.getFocusedWindow();
+    const opts: Electron.MessageBoxOptions = {
+      type: "info",
+      title: "更新就绪",
+      message: "新版本已下载完成",
+      detail: "重启应用后将自动安装新版本。",
+      buttons: ["立即重启", "稍后"],
+      defaultId: 0,
+    };
+    (win ? dialog.showMessageBox(win, opts) : dialog.showMessageBox(opts)).then(({ response }) => {
+      if (response === 0) autoUpdater.quitAndInstall();
+    });
+  });
+
+  autoUpdater.on("error", (err) => {
+    writeLog(`[updater] Error: ${err.message}`);
+    mainWindow?.setProgressBar(-1);
+  });
+}
 
 // ---------- 应用生命周期 ----------
 app.whenReady().then(createWindow);

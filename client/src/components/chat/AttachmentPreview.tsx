@@ -38,10 +38,10 @@ export default function AttachmentPreview({
               className="w-8 h-8 rounded object-cover flex-shrink-0"
             />
           ) : (
-            <FileText size={14} className="text-slate-400 flex-shrink-0" />
+            <FileText size={14} className={`flex-shrink-0 ${a.size === 0 ? "text-purple-bright/70" : "text-slate-400"}`} />
           )}
           <span className="truncate">{a.name}</span>
-          <span className="text-slate-500 flex-shrink-0">{formatSize(a.size)}</span>
+          {a.size > 0 && <span className="text-slate-500 flex-shrink-0">{formatSize(a.size)}</span>}
           <button
             onClick={() => onRemove(a.id)}
             className="p-0.5 rounded hover:bg-white/10 text-slate-500 hover:text-white transition-colors flex-shrink-0"

@@ -11,6 +11,9 @@
     "run:pack": "electron-builder --config electron-builder.yml",
     "dev": "tsc && electron dist/main.js"
   },
+  "dependencies": {
+    "electron-updater": "^6.3.0"
+  },
   "devDependencies": {
     "@electron/rebuild": "^3.6.0",
     "@types/node": "^22.0.0",

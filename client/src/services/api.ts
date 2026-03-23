@@ -141,6 +141,11 @@ export const api = {
       method: "DELETE",
       body: JSON.stringify({ filePath, projectRoot }),
     }),
+  writeFileContent: (filePath: string, content: string) =>
+    request<{ success: boolean; path: string }>("/files/content", {
+      method: "PUT",
+      body: JSON.stringify({ path: filePath, content }),
+    }),
 
   // ── MCP ──
   getMcpServers: (project?: string) =>
