@@ -77,7 +77,7 @@ interface UIState {
 
   setSettingsPageOpen: (open: boolean) => void;
 
-  setExtensionsSubTab: (tab: "mcp" | "skills" | "plugins" | "memory" | "hooks") => void;
+  setExtensionsSubTab: (tab: "mcp" | "skills" | "plugins" | "memory" | "hooks" | "desktop") => void;
 
   setPrefillInput: (text: string) => void;
 }

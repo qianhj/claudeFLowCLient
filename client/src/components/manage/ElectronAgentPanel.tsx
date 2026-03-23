@@ -92,7 +92,7 @@ function AgentControls() {
 
   useEffect(() => {
     refresh();
-    const unsub = api.onAgentReady((state) => setAgentState(state));
+    const unsub = api.onAgentReady((state: AgentState) => setAgentState(state));
     return unsub;
   }, [api, refresh]);
 
