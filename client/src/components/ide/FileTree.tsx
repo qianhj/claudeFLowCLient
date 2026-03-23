@@ -508,8 +508,32 @@ function TreeNode({
   onInlineCancel: () => void;
 }) {
   const [expanded, setExpanded] = useState(depth < 1);
+  const [lazyChildren, setLazyChildren] = useState<FileNode[]>([]);
+  const [lazyLoading, setLazyLoading] = useState(false);
   const isDir = node.type === "directory";
   const isModified = modifiedFiles.has(node.path);
+
+  // Effective children: prefer server-provided, fall back to lazy-loaded
+  const children = node.children?.length ? node.children : lazyChildren;
+  // A directory is "unloaded" if it has no children at all yet
+  const needsLoad = isDir && !node.children?.length && !lazyChildren.length && !lazyLoading;
+
+  const handleToggle = useCallback(async () => {
+    if (!isDir) return;
+    const next = !expanded;
+    setExpanded(next);
+    if (next && needsLoad) {
+      setLazyLoading(true);
+      try {
+        const result = await api.getFileTree(node.path, 1);
+        setLazyChildren(result.children ?? []);
+      } catch {
+        // silently ignore
+      } finally {
+        setLazyLoading(false);
+      }
+    }
+  }, [isDir, expanded, needsLoad, node.path]);
 
   // Check if this node is being renamed
   const isBeingRenamed = inlineInput?.mode === "rename"
@@ -541,7 +565,7 @@ function TreeNode({
       <button
         onClick={() => {
           if (isDir) {
-            setExpanded(!expanded);
+            handleToggle();
           } else {
             onFileClick(node.path);
           }
@@ -558,7 +582,9 @@ function TreeNode({
       >
         {/* Expand/collapse arrow (dirs only) */}
         {isDir ? (
-          expanded ? (
+          lazyLoading ? (
+            <Loader2 size={14} className="text-slate-500 flex-shrink-0 animate-spin" />
+          ) : expanded ? (
             <ChevronDown size={14} className="text-slate-500 flex-shrink-0" />
           ) : (
             <ChevronRight size={14} className="text-slate-500 flex-shrink-0" />
@@ -599,7 +625,7 @@ function TreeNode({
               onCancel={onInlineCancel}
             />
           )}
-          {node.children?.map((child) => (
+          {children.map((child) => (
             <TreeNode
               key={child.path}
               node={child}
