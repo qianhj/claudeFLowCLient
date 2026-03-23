@@ -75,43 +75,8 @@ jobs:
             electron/dist/release/*.dmg
             electron/dist/release/*.zip
 
-  build-linux:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: pnpm/action-setup@v2
-        with:
-          version: 9
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: 'pnpm'
-
-      - name: Install dependencies
-        run: pnpm install
-
-      - name: Build server & client
-        run: pnpm build
-
-      - name: Build Electron
-        run: |
-          cd electron
-          pnpm install
-          pnpm build
-          pnpm run:pack
-
-      - name: Upload Linux artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: linux-installer
-          path: |
-            electron/dist/release/*.AppImage
-            electron/dist/release/*.deb
-
   release:
-    needs: [build-windows, build-macos, build-linux]
+    needs: [build-windows, build-macos]
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/v')
     steps:
@@ -127,8 +92,6 @@ jobs:
             artifacts/windows-installer/*.exe
             artifacts/macos-installer/*.dmg
             artifacts/macos-installer/*.zip
-            artifacts/linux-installer/*.AppImage
-            artifacts/linux-installer/*.deb
           draft: false
           prerelease: false
         env:

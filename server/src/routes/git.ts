@@ -1,10 +1,11 @@
 import { Router } from "express";
+import type { Router as ExpressRouter } from "express";
 import { spawnSync } from "child_process";
 import path from "path";
 import fs from "fs";
 import { normalizePath } from "../utils/pathUtils.js";
 
-const router = Router();
+const router: ExpressRouter = Router();
 
 interface GitCommit {
   hash: string;

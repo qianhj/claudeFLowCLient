@@ -1,7 +1,8 @@
 import { Router } from "express";
+import type { Router as ExpressRouter } from "express";
 import { ConfigService } from "../services/configService.js";
 
-const router = Router();
+const router: ExpressRouter = Router();
 const configService = new ConfigService();
 
 async function glFetch(url: string, token: string): Promise<unknown> {
