@@ -8,6 +8,7 @@ interface FileState {
   openFilePath: string | null;
   openFileContent: FileContent | null;
   fileLoading: boolean;
+  fileError: string | null;
   modifiedFiles: Set<string>;
   searchQuery: string;
   searchResults: { path: string; type: string }[];
@@ -26,6 +27,7 @@ export const useFileStore = create<FileState>((set, get) => ({
   openFilePath: null,
   openFileContent: null,
   fileLoading: false,
+  fileError: null,
   modifiedFiles: new Set(),
   searchQuery: "",
   searchResults: [],
@@ -41,17 +43,17 @@ export const useFileStore = create<FileState>((set, get) => ({
   },
 
   openFile: async (filePath) => {
-    set({ fileLoading: true, openFilePath: filePath });
+    set({ fileLoading: true, openFilePath: filePath, fileError: null });
     try {
       const content = await api.getFileContent(filePath);
       set({ openFileContent: content, fileLoading: false });
-    } catch {
-      set({ fileLoading: false, openFileContent: null });
+    } catch (err) {
+      set({ fileLoading: false, openFileContent: null, fileError: String(err) });
     }
   },
 
   closeFile: () => {
-    set({ openFilePath: null, openFileContent: null });
+    set({ openFilePath: null, openFileContent: null, fileError: null });
   },
 
   markFileModified: (filePath) => {

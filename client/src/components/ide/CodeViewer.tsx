@@ -1,4 +1,4 @@
-import { X, Copy, Check, FileText, Loader2 } from "lucide-react";
+import { X, Copy, Check, FileText, Loader2, AlertCircle } from "lucide-react";
 import { useState, useCallback } from "react";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
@@ -30,7 +30,7 @@ const LANGUAGE_MAP: Record<string, string> = {
 };
 
 export default function CodeViewer() {
-  const { openFilePath, openFileContent, fileLoading, closeFile } =
+  const { openFilePath, openFileContent, fileLoading, fileError, closeFile } =
     useFileStore();
   const setRightPanelOpen = useUIStore((s) => s.setRightPanelOpen);
   const [copied, setCopied] = useState(false);
@@ -126,8 +126,12 @@ export default function CodeViewer() {
           </SyntaxHighlighter>
         </div>
       ) : (
-        <div className="flex-1 flex items-center justify-center text-obsidian-400 text-sm">
-          无法加载文件内容
+        <div className="flex-1 flex flex-col items-center justify-center gap-2 text-sm p-4">
+          <AlertCircle size={20} className="text-rose-400" />
+          <span className="text-slate-400">无法加载文件内容</span>
+          {fileError && (
+            <span className="text-xs text-slate-500 text-center break-all max-w-xs">{fileError}</span>
+          )}
         </div>
       )}
 

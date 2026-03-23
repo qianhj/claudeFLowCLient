@@ -22,7 +22,8 @@ async function request<T>(
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({ message: res.statusText }));
-    throw new Error(err.message || err.error || res.statusText);
+    const msg = err?.error?.message || err?.message || (typeof err?.error === 'string' ? err.error : null) || res.statusText;
+    throw new Error(msg);
   }
   return res.json();
 }

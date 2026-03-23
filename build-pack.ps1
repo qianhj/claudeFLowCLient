@@ -1,7 +1,12 @@
 $ErrorActionPreference = "Stop"
 $ROOT = "d:\fufan-cc-flow-src"
 
-Write-Host "[1/6] npm install server..." -ForegroundColor Cyan
+Write-Host "[0/6] Clean previous build output..." -ForegroundColor Cyan
+if (Test-Path "$ROOT\electron\dist") {
+    Remove-Item -Recurse -Force "$ROOT\electron\dist"
+}
+
+Write-Host "[1/6] npm install server (all deps for build)..." -ForegroundColor Cyan
 Set-Location "$ROOT\server"
 npm install
 if ($LASTEXITCODE -ne 0) { throw "server npm install failed" }
@@ -16,6 +21,12 @@ Set-Location "$ROOT\server"
 npx --yes tsc
 if ($LASTEXITCODE -ne 0) { throw "server build failed" }
 
+Write-Host "[3.5/6] Replace server node_modules with production-only..." -ForegroundColor Cyan
+Set-Location "$ROOT\server"
+Remove-Item -Recurse -Force node_modules
+npm install --omit=dev
+if ($LASTEXITCODE -ne 0) { throw "server prod install failed" }
+
 Write-Host "[4/6] build client..." -ForegroundColor Cyan
 Set-Location "$ROOT\client"
 npx --yes vite build
@@ -23,7 +34,6 @@ if ($LASTEXITCODE -ne 0) { throw "client build failed" }
 
 Write-Host "[5/6] compile electron..." -ForegroundColor Cyan
 Set-Location "$ROOT\electron"
-# .bin links may be missing; call typescript and electron-builder directly via node
 node ".\node_modules\typescript\bin\tsc"
 if ($LASTEXITCODE -ne 0) { throw "electron tsc failed" }
 
