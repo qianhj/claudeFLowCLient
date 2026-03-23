@@ -62,7 +62,8 @@ export default function ElectronAgentPanel() {
 
 /* ── Main panel (only rendered inside Electron) ── */
 function AgentControls() {
-  const api = window.electronAPI;
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const api = window.electronAPI!;
 
   const [agentState, setAgentState] = useState<AgentState | null>(null);
   const [windowInfo, setWindowInfo] = useState<WindowInfo | null>(null);
