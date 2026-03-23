@@ -4,6 +4,7 @@ import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { Copy, Check } from "lucide-react";
 import { useState, useCallback } from "react";
+import ArtifactRenderer, { parseArtifacts, hasArtifacts } from "./ArtifactRenderer";
 
 interface Props {
   content: string;
@@ -65,8 +66,12 @@ function CodeBlock({
 }
 
 export default function MarkdownRenderer({ content }: Props) {
+  // Check for artifacts in content
+  const { text, artifacts } = parseArtifacts(content);
+
   return (
     <div className="prose-obsidian text-[14px]">
+      {/* Render cleaned markdown */}
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{
@@ -85,8 +90,16 @@ export default function MarkdownRenderer({ content }: Props) {
           },
         }}
       >
-        {content}
+        {text}
       </ReactMarkdown>
+
+      {/* Render artifacts */}
+      {artifacts.map((artifact) => (
+        <ArtifactRenderer key={artifact.id} artifact={artifact} />
+      ))}
     </div>
   );
 }
+
+// Export helper for other components
+export { hasArtifacts };

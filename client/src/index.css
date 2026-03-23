@@ -394,3 +394,158 @@ select option {
   color: #cbd5e1; /* slate-300 */
   border-bottom-color: rgba(255, 255, 255, 0.1);
 }
+
+/* ══════════════════════════════════════════════════════
+   LIGHT THEME OVERRIDES
+   ══════════════════════════════════════════════════════ */
+
+[data-theme="light"] {
+  /* Override obsidian palette for light theme */
+  --color-obsidian-950: #f8f9fa;
+  --color-obsidian-900: #ffffff;   /* Main background */
+  --color-obsidian-800: #f1f3f5;   /* Sidebar / panel bg */
+  --color-obsidian-700: #e9ecef;   /* Card / surface bg */
+  --color-obsidian-600: #dee2e6;   /* Hover bg */
+  --color-obsidian-500: #ced4da;   /* Element bg */
+  --color-obsidian-400: #adb5bd;   /* Divider / border */
+  --color-obsidian-300: #868e96;   /* Muted border */
+  --color-obsidian-200: #495057;   /* Placeholder / muted text */
+  --color-obsidian-100: #343a40;   /* Secondary text */
+  --color-obsidian-50:  #212529;   /* Primary text */
+}
+
+[data-theme="light"] html {
+  background: var(--color-obsidian-900);
+  color: #212529;
+}
+
+[data-theme="light"] body {
+  color: #212529;
+}
+
+[data-theme="light"] ::selection {
+  background: color-mix(in srgb, var(--color-purple-glow) 25%, transparent);
+  color: #000;
+}
+
+[data-theme="light"] ::-webkit-scrollbar-thumb {
+  background: var(--color-obsidian-400);
+}
+
+[data-theme="light"] ::-webkit-scrollbar-thumb:hover {
+  background: var(--color-obsidian-300);
+}
+
+[data-theme="light"] .glass-panel {
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="light"] .nav-item-active {
+  background: rgba(124, 58, 237, 0.08);
+  color: #6d28d9;
+  border: 1px solid rgba(124, 58, 237, 0.15);
+}
+
+[data-theme="light"] .resize-handle-ew::after {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="light"] .resize-handle-ew:hover::after {
+  background: rgba(217, 119, 87, 0.5);
+}
+
+[data-theme="light"] select {
+  color-scheme: light;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+}
+
+[data-theme="light"] select option {
+  background: #ffffff;
+  color: #212529;
+}
+
+/* Light theme prose */
+[data-theme="light"] .prose-obsidian h1,
+[data-theme="light"] .prose-obsidian h2,
+[data-theme="light"] .prose-obsidian h3 {
+  color: #212529;
+}
+
+[data-theme="light"] .prose-obsidian p {
+  color: #343a40;
+}
+
+[data-theme="light"] .prose-obsidian li {
+  color: #343a40;
+}
+
+[data-theme="light"] .prose-obsidian code:not(pre code) {
+  background: #e9ecef;
+  color: #d97757;
+}
+
+[data-theme="light"] .prose-obsidian pre {
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+}
+
+[data-theme="light"] .prose-obsidian pre code {
+  color: #343a40;
+}
+
+[data-theme="light"] .prose-obsidian th {
+  background: #e9ecef;
+  border-bottom: 1px solid #adb5bd;
+}
+
+[data-theme="light"] .prose-obsidian td {
+  border-bottom: 1px solid #e9ecef;
+  color: #343a40;
+}
+
+[data-theme="light"] .prose-obsidian blockquote {
+  color: #495057;
+}
+
+[data-theme="light"] .prose-obsidian hr {
+  border-top: 1px solid #dee2e6;
+}
+
+[data-theme="light"] .prose-obsidian strong {
+  color: #212529;
+}
+
+[data-theme="light"] .prose-obsidian table {
+  color: #343a40;
+}
+
+/* Light theme tab styles */
+[data-theme="light"] .tab-active {
+  border-bottom: 2px solid var(--color-amber-glow);
+  color: #212529;
+}
+
+[data-theme="light"] .tab-inactive {
+  color: #6b7280;
+}
+
+[data-theme="light"] .tab-inactive:hover {
+  color: #374151;
+  border-bottom-color: rgba(0, 0, 0, 0.08);
+}
+
+/* Light theme diff colors */
+[data-theme="light"] .diff-add-bg {
+  background: color-mix(in srgb, #4ade80 12%, transparent);
+}
+
+[data-theme="light"] .diff-remove-bg {
+  background: color-mix(in srgb, #fb7185 12%, transparent);
+}
+
+/* Hide noise texture in light mode */
+[data-theme="light"] body::before {
+  display: none;
+}
+

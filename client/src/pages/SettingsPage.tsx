@@ -27,6 +27,7 @@ import { useConfigStore } from "../stores/configStore";
 import { useClaudeStatus } from "../hooks/useClaudeStatus";
 import type { ModelId, EffortLevel } from "../types/claude";
 import { api } from "../services/api";
+import AppearanceSettings from "../components/settings/AppearanceSettings";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -1008,6 +1009,24 @@ export default function SettingsPage() {
               </div>
             </div>
             <Step2AuthCard locked={!step1Done} />
+          </div>
+
+          {/* Appearance Settings */}
+          <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-5">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-7 h-7 rounded-full border border-sky-link/30 bg-sky-link/10 flex items-center justify-center flex-shrink-0">
+                <span className="text-xs font-bold text-sky-link">3</span>
+              </div>
+              <div>
+                <h2 className="text-sm font-semibold text-slate-200 font-display">
+                  外观与显示
+                </h2>
+                <p className="text-[11px] text-slate-500 mt-0.5">
+                  主题、字体大小等个性化设置
+                </p>
+              </div>
+            </div>
+            <AppearanceSettings />
           </div>
 
         </div>

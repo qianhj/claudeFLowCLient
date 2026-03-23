@@ -1,17 +1,20 @@
-import { Clock, Plus, Zap } from "lucide-react";
+import { Clock, Plus, Zap, Share2 } from "lucide-react";
 import MessageList from "./MessageList";
 import InputBar from "./InputBar";
+import ShareConversation from "./ShareConversation";
 import { useChatStore } from "../../stores/chatStore";
 import { useUIStore } from "../../stores/uiStore";
 import { useSystemStore } from "../../stores/systemStore";
 import { useClaudeStatus } from "../../hooks/useClaudeStatus";
 import SettingsPage from "../../pages/SettingsPage";
+import { useState } from "react";
 
 export default function ChatPanel() {
   const { currentSessionId, isStreaming, clearMessages, messages } = useChatStore();
   const { setHistoryModalOpen, wsConnected, setSettingsPageOpen, settingsPageOpen, projectPath, setFolderBrowserOpen } = useUIStore();
   const { claudeInfo, authStatus } = useSystemStore();
   const claudeStatus = useClaudeStatus();
+  const [showShare, setShowShare] = useState(false);
 
   // Use last user message as task title
   const lastUserMsg = [...messages].reverse().find((m) => m.role === "user");
@@ -92,7 +95,7 @@ export default function ChatPanel() {
           </div>
         </div>
 
-        {/* Right: history + new task */}
+        {/* Right: history + share + new task */}
         <div className="flex items-center gap-2 flex-shrink-0">
           <button
             onClick={() => setHistoryModalOpen(true)}
@@ -101,6 +104,20 @@ export default function ChatPanel() {
           >
             <Clock size={16} />
           </button>
+          <div className="relative">
+            <button
+              onClick={() => setShowShare(!showShare)}
+              className="p-2 rounded-lg hover:bg-white/5 text-slate-300 hover:text-white transition-colors"
+              title="分享对话"
+            >
+              <Share2 size={16} />
+            </button>
+            {showShare && (
+              <div className="absolute right-0 top-full mt-2 w-64 z-50">
+                <ShareConversation onClose={() => setShowShare(false)} />
+              </div>
+            )}
+          </div>
           <button
             onClick={handleNewTask}
             disabled={isStreaming}
