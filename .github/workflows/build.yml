@@ -33,19 +33,50 @@ jobs:
         shell: powershell
         run: |
           $env:GIT_CONFIG_GLOBAL = "$env:USERPROFILE\.gitconfig"
-          pnpm install --no-frozen-lockfile
+          cd server
+          npm install
+          cd ../client
+          npm install
 
       - name: Build server & client
-        run: pnpm build
+        run: |
+          cd server
+          npx tsc
+          cd ../client
+          npx vite build
 
-      - name: Build Electron
+      - name: Install production deps (omit dev)
+        shell: powershell
+        run: |
+          cd server
+          npm install --omit=dev
+
+      - name: Install Electron and build
         shell: powershell
         run: |
           $env:GIT_CONFIG_GLOBAL = "$env:USERPROFILE\.gitconfig"
           cd electron
-          pnpm install --no-frozen-lockfile
-          pnpm build
-          pnpm run:pack
+          npm install
+          npx tsc
+
+      - name: Copy app-builder-bin from pnpm store
+        shell: powershell
+        run: |
+          $pnpmStore = "node_modules\.pnpm"
+          $appBuilderDir = Get-ChildItem $pnpmStore -Filter "app-builder-bin*" -Directory -ErrorAction SilentlyContinue | Select-Object -First 1
+          if ($appBuilderDir) {
+              $src = Join-Path $appBuilderDir.FullName "node_modules\app-builder-bin"
+              $dst = "electron\node_modules\app-builder-bin"
+              if (Test-Path $src) {
+                  robocopy $src $dst /E /NFL /NDL /NJH /NJS /NC /NS 2>&1 | Out-Null
+              }
+          }
+
+      - name: Electron pack
+        shell: powershell
+        run: |
+          cd electron
+          npx electron-builder --config electron-builder.yml
 
       - name: Upload Windows artifact
         uses: actions/upload-artifact@v4
@@ -75,19 +106,45 @@ jobs:
 
       - name: Install dependencies
         run: |
-          export GIT_CONFIG_GLOBAL="$HOME/.gitconfig"
-          pnpm install --no-frozen-lockfile
+          cd server
+          npm install
+          cd ../client
+          npm install
 
       - name: Build server & client
-        run: pnpm build
-
-      - name: Build Electron
         run: |
-          export GIT_CONFIG_GLOBAL="$HOME/.gitconfig"
+          cd server
+          npx tsc
+          cd ../client
+          npx vite build
+
+      - name: Install production deps (omit dev)
+        run: |
+          cd server
+          npm install --omit=dev
+
+      - name: Install Electron and build
+        run: |
           cd electron
-          pnpm install --no-frozen-lockfile
-          pnpm build
-          pnpm run:pack
+          npm install
+          npx tsc
+
+      - name: Copy app-builder-bin from pnpm store
+        run: |
+          pnpmStore="node_modules/.pnpm"
+          appBuilderDir=$(find $pnpmStore -maxdepth 1 -type d -name "app-builder-bin*" | head -1)
+          if [ -n "$appBuilderDir" ]; then
+            src="$appBuilderDir/node_modules/app-builder-bin"
+            dst="electron/node_modules/app-builder-bin"
+            if [ -d "$src" ]; then
+              cp -r "$src" "$dst"
+            fi
+          fi
+
+      - name: Electron pack
+        run: |
+          cd electron
+          npx electron-builder --config electron-builder.yml
 
       - name: Upload macOS artifact
         uses: actions/upload-artifact@v4
