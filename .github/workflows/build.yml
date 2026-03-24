@@ -19,60 +19,93 @@ jobs:
           if (-not (Test-Path $gitConfig)) { New-Item -ItemType File -Path $gitConfig -Force }
           git config --global url."https://github.com/".insteadOf "git@github.com:"
           git config --global url."https://github.com/".insteadOf "ssh://git@github.com/"
+          $env:GIT_CONFIG_GLOBAL = "$env:USERPROFILE\.gitconfig"
 
       - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: 'npm'
 
-      - name: Install dependencies
+      - name: '[0] Clean previous build output'
         shell: powershell
         run: |
-          $env:GIT_CONFIG_GLOBAL = "$env:USERPROFILE\.gitconfig"
-          cd server
-          npm install
-          cd ../client
-          npm install
-
-      - name: Build server & client
-        run: |
-          cd server
-          npx tsc
-          cd ../client
-          npx vite build
-
-      - name: Install production deps (omit dev)
-        shell: powershell
-        run: |
-          cd server
-          npm install --omit=dev
-
-      - name: Install Electron and build
-        shell: powershell
-        run: |
-          $env:GIT_CONFIG_GLOBAL = "$env:USERPROFILE\.gitconfig"
-          cd electron
-          npm install
-          npx tsc
-
-      - name: Copy app-builder-bin from pnpm store
-        shell: powershell
-        run: |
-          $pnpmStore = "node_modules\.pnpm"
-          $appBuilderDir = Get-ChildItem $pnpmStore -Filter "app-builder-bin*" -Directory -ErrorAction SilentlyContinue | Select-Object -First 1
-          if ($appBuilderDir) {
-              $src = Join-Path $appBuilderDir.FullName "node_modules\app-builder-bin"
-              $dst = "electron\node_modules\app-builder-bin"
-              if (Test-Path $src) {
-                  robocopy $src $dst /E /NFL /NDL /NJH /NJS /NC /NS 2>&1 | Out-Null
-              }
+          if (Test-Path "electron\dist") {
+            Remove-Item -Recurse -Force "electron\dist"
           }
 
-      - name: Electron pack
+      - name: '[1] npm install server'
+        shell: powershell
+        run: |
+          cd server
+          npm install
+          if ($LASTEXITCODE -ne 0) { throw "server npm install failed" }
+
+      - name: '[2] npm install client'
+        shell: powershell
+        run: |
+          cd client
+          npm install
+          if ($LASTEXITCODE -ne 0) { throw "client npm install failed" }
+
+      - name: '[3] build server'
+        shell: powershell
+        run: |
+          cd server
+          npx --yes tsc
+          if ($LASTEXITCODE -ne 0) { throw "server build failed" }
+
+      - name: '[4] build client'
+        shell: powershell
+        run: |
+          cd client
+          npx --yes vite build
+          if ($LASTEXITCODE -ne 0) { throw "client build failed" }
+
+      - name: '[5] Replace server node_modules with production-only'
+        shell: powershell
+        run: |
+          cd server
+          Remove-Item -Recurse -Force node_modules
+          npm install --omit=dev
+          if ($LASTEXITCODE -ne 0) { throw "server prod install failed" }
+
+      - name: '[6] compile electron'
         shell: powershell
         run: |
           cd electron
-          npx electron-builder --config electron-builder.yml
+          npm install
+          if ($LASTEXITCODE -ne 0) { throw "electron npm install failed" }
+          node ".\node_modules\typescript\bin\tsc"
+          if ($LASTEXITCODE -ne 0) { throw "electron tsc failed" }
+
+      - name: '[6.5] copy app-builder-bin from pnpm store'
+        shell: powershell
+        run: |
+          $pnpmStore = "$env:GITHUB_WORKSPACE\node_modules\.pnpm"
+          if (-not (Test-Path $pnpmStore)) {
+            Write-Host "pnpm store not found at $pnpmStore, skipping app-builder-bin copy"
+            exit 0
+          }
+          $appBuilderDir = Get-ChildItem $pnpmStore -Filter "app-builder-bin*" -Directory -ErrorAction SilentlyContinue | Select-Object -First 1
+          if ($appBuilderDir) {
+            $src = Join-Path $appBuilderDir.FullName "node_modules\app-builder-bin"
+            $dst = "electron\node_modules\app-builder-bin"
+            if (Test-Path $src) {
+              robocopy $src $dst /E /NFL /NDL /NJH /NJS /NC /NS 2>&1 | Out-Null
+              Write-Host "app-builder-bin copied successfully"
+            } else {
+              Write-Host "Source not found: $src"
+            }
+          } else {
+            Write-Host "app-builder-bin not found in pnpm store"
+          }
+
+      - name: '[7] electron-builder pack'
+        shell: powershell
+        run: |
+          cd electron
+          node ".\node_modules\electron-builder\cli.js" --config electron-builder.yml
+          if ($LASTEXITCODE -ne 0) { throw "electron-builder failed" }
 
       - name: Upload Windows artifact
         uses: actions/upload-artifact@v4
@@ -96,47 +129,48 @@ jobs:
           node-version: 20
           cache: 'npm'
 
-      - name: Install dependencies
+      - name: '[0] Clean previous build output'
         run: |
-          cd server
-          npm install
-          cd ../client
-          npm install
-
-      - name: Build server & client
-        run: |
-          cd server
-          npx tsc
-          cd ../client
-          npx vite build
-
-      - name: Install production deps (omit dev)
-        run: |
-          cd server
-          npm install --omit=dev
-
-      - name: Install Electron and build
-        run: |
-          cd electron
-          npm install
-          npx tsc
-
-      - name: Copy app-builder-bin from pnpm store
-        run: |
-          pnpmStore="node_modules/.pnpm"
-          appBuilderDir=$(find $pnpmStore -maxdepth 1 -type d -name "app-builder-bin*" | head -1)
-          if [ -n "$appBuilderDir" ]; then
-            src="$appBuilderDir/node_modules/app-builder-bin"
-            dst="electron/node_modules/app-builder-bin"
-            if [ -d "$src" ]; then
-              cp -r "$src" "$dst"
-            fi
+          if [ -d "electron/dist" ]; then
+            rm -rf electron/dist
           fi
 
-      - name: Electron pack
+      - name: '[1] npm install server'
+        run: |
+          cd server
+          npm install
+
+      - name: '[2] npm install client'
+        run: |
+          cd client
+          npm install
+
+      - name: '[3] build server'
+        run: |
+          cd server
+          npx tsc
+
+      - name: '[4] build client'
+        run: |
+          cd client
+          npx vite build
+
+      - name: '[5] Replace server node_modules with production-only'
+        run: |
+          cd server
+          rm -rf node_modules
+          npm install --omit=dev
+
+      - name: '[6] compile electron'
         run: |
           cd electron
-          npx electron-builder --config electron-builder.yml
+          npm install
+          node "./node_modules/typescript/bin/tsc"
+
+      - name: '[7] electron-builder pack'
+        run: |
+          cd electron
+          node "./node_modules/electron-builder/cli.js" --config electron-builder.yml
 
       - name: Upload macOS artifact
         uses: actions/upload-artifact@v4
