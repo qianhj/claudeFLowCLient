@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from "react";
-import { EditorView, keymap } from "@codemirror/view";
+import { EditorView, keymap, ViewUpdate } from "@codemirror/view";
 import { EditorState, type Extension } from "@codemirror/state";
 import { indentWithTab } from "@codemirror/commands";
 import { oneDark } from "@codemirror/theme-one-dark";
@@ -184,7 +184,7 @@ export default function CodeViewer({ filePath: propPath, content: propContent, r
             },
             indentWithTab,
           ]),
-          EditorView.updateListener.of((update) => {
+          EditorView.updateListener.of((update: ViewUpdate) => {
             if (update.docChanged) setIsDirty(true);
             if (update.selectionSet) {
               const head = update.state.selection.main.head;

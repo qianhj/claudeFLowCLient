@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from "react";
-import { EditorView, keymap } from "@codemirror/view";
+import { EditorView, keymap, ViewUpdate } from "@codemirror/view";
 import { EditorState, type Extension } from "@codemirror/state";
 import { indentWithTab } from "@codemirror/commands";
 import { oneDark } from "@codemirror/theme-one-dark";
@@ -128,7 +128,7 @@ function EditorInstance({ filePath, content, isActive, onDirtyChange, onSelectio
           appTheme,
           ...(langExt ? [langExt] : []),
           keymap.of([indentWithTab]),
-          EditorView.updateListener.of((update) => {
+          EditorView.updateListener.of((update: ViewUpdate) => {
             if (update.docChanged) {
               const dirty = update.state.doc.toString() !== initialContentRef.current;
               onDirtyChange(dirty);
