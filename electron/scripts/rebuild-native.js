@@ -43,7 +43,8 @@ exports.default = async function (context) {
     return;
   }
 
-  const modulesDir = path.join(appOutDir, "resources", "server", "node_modules");
+  const serverDir = path.join(appOutDir, "resources", "server");
+  const modulesDir = path.join(serverDir, "node_modules");
   if (!fs.existsSync(modulesDir)) {
     console.log("[rebuild] No node_modules in resources/server, skipping");
     return;
@@ -52,7 +53,7 @@ exports.default = async function (context) {
   console.log(`[rebuild] Rebuilding native modules, electron=${electronVersion}`);
   try {
     await rebuild({
-      buildPath: modulesDir,
+      buildPath: serverDir,  // use server root (contains package.json), not node_modules
       electronVersion,
       onlyModules: ["node-pty"],
     });
