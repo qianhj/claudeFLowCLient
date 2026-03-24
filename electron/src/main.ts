@@ -76,6 +76,28 @@ function startServer(): void {
   const serverDir = path.dirname(serverEntry);
   const serverNodeModules = path.join(serverDir, "node_modules");
 
+  // macOS: GUI apps don't inherit shell PATH, extend with common npm global paths
+  let extendedPath = process.env.PATH || "";
+  if (process.platform === "darwin") {
+    const additionalPaths = [
+      "/usr/local/bin",
+      "/opt/homebrew/bin",
+      "/usr/bin",
+      "/bin",
+      "~/.npm-global/bin",
+      "~/.nvm/versions/node/current/bin",
+      "/opt/local/bin",
+    ];
+    const expandedPaths = additionalPaths.map(p => {
+      if (p.startsWith("~")) {
+        return path.join(process.env.HOME || "", p.slice(1));
+      }
+      return p;
+    });
+    extendedPath = [...expandedPaths, extendedPath].filter(Boolean).join(":");
+    writeLog(`[main] Extended PATH for macOS: ${extendedPath}`);
+  }
+
   serverProcess = fork(serverEntry, [], {
     env: {
       ...process.env,
@@ -85,6 +107,8 @@ function startServer(): void {
       ELECTRON_RESOURCES_PATH: process.resourcesPath,
       // server/node_modules 不在默认路径，需要显式指定
       NODE_PATH: serverNodeModules,
+      // 使用扩展后的 PATH（macOS 包含 npm 全局路径）
+      PATH: extendedPath,
     },
     stdio: "pipe",
   });
