@@ -6,11 +6,21 @@ on:
       - 'v*'
   workflow_dispatch:
 
+env:
+  # 强制 Git 使用 HTTPS 代替 SSH
+  GIT_CONFIG_GLOBAL: ~/.gitconfig
+
 jobs:
   build-windows:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Setup Git HTTPS
+        shell: bash
+        run: |
+          git config --global url."https://github.com/".insteadOf "git@github.com:"
+          git config --global url."https://github.com/".insteadOf "ssh://git@github.com/"
 
       - uses: pnpm/action-setup@v2
         with:
@@ -21,24 +31,15 @@ jobs:
           node-version: 20
           cache: 'pnpm'
 
-      - name: Configure Git to use HTTPS
-        run: |
-          git config --global url."https://github.com/".insteadOf "git@github.com:"
-          git config --global url."https://github.com/".insteadOf "ssh://git@github.com/"
-          git config --global url."https://github.com/".insteadOf "git://github.com/"
-
-      - name: Configure pnpm
-        run: |
-          pnpm config set git-url-replacement "git@github.com:->https://github.com/" --global
-          pnpm config set git-url-replacement "ssh://git@github.com/->https://github.com/" --global
-
       - name: Install dependencies
+        shell: bash
         run: pnpm install --no-frozen-lockfile
 
       - name: Build server & client
         run: pnpm build
 
       - name: Build Electron
+        shell: bash
         run: |
           cd electron
           pnpm install --no-frozen-lockfile
@@ -56,6 +57,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Setup Git HTTPS
+        run: |
+          git config --global url."https://github.com/".insteadOf "git@github.com:"
+          git config --global url."https://github.com/".insteadOf "ssh://git@github.com/"
+
       - uses: pnpm/action-setup@v2
         with:
           version: 9
@@ -64,17 +70,6 @@ jobs:
         with:
           node-version: 20
           cache: 'pnpm'
-
-      - name: Configure Git to use HTTPS
-        run: |
-          git config --global url."https://github.com/".insteadOf "git@github.com:"
-          git config --global url."https://github.com/".insteadOf "ssh://git@github.com/"
-          git config --global url."https://github.com/".insteadOf "git://github.com/"
-
-      - name: Configure pnpm
-        run: |
-          pnpm config set git-url-replacement "git@github.com:->https://github.com/" --global
-          pnpm config set git-url-replacement "ssh://git@github.com/->https://github.com/" --global
 
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
@@ -118,5 +113,7 @@ jobs:
             artifacts/macos-installer/*.zip
           draft: false
           prerelease: false
+          # 覆盖已存在的文件
+          fail_on_unmatched_files: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
