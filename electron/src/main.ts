@@ -73,6 +73,9 @@ function startServer(): void {
   writeLog(`[main] serverEntry   = ${serverEntry}`);
   writeLog(`[main] exists        = ${fs.existsSync(serverEntry)}`);
 
+  const serverDir = path.dirname(serverEntry);
+  const serverNodeModules = path.join(serverDir, "node_modules");
+
   serverProcess = fork(serverEntry, [], {
     env: {
       ...process.env,
@@ -80,6 +83,8 @@ function startServer(): void {
       NODE_ENV: "production",
       ELECTRON_RUN_AS_NODE: "1",
       ELECTRON_RESOURCES_PATH: process.resourcesPath,
+      // server/node_modules 不在默认路径，需要显式指定
+      NODE_PATH: serverNodeModules,
     },
     stdio: "pipe",
   });
