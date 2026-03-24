@@ -6,9 +6,16 @@ on:
       - 'v*'
   workflow_dispatch:
 
+env:
+  # 国内镜像加速 Electron 下载（如不需要可删除或改为 github 官方）
+  ELECTRON_MIRROR: "https://npmmirror.com/mirrors/electron/"
+  ELECTRON_BUILDER_CACHE: "${{ github.workspace }}/.cache/electron-builder"
+  NODE_VERSION: 20
+
 jobs:
   build-windows:
     runs-on: windows-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
 
@@ -23,83 +30,76 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: ${{ env.NODE_VERSION }}
 
-      - name: '[0] Clean previous build output'
+      # ========== 缓存优化 ==========
+      - name: Cache Electron
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/AppData/Local/electron
+            ~/AppData/Local/electron-builder
+            ${{ github.workspace }}/.cache/electron-builder
+          key: ${{ runner.os }}-electron-${{ hashFiles('electron/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-electron-
+
+      - name: Cache node_modules
+        uses: actions/cache@v4
+        with:
+          path: |
+            server/node_modules
+            client/node_modules
+            electron/node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('server/package-lock.json', 'client/package-lock.json', 'electron/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Cache npm
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: ${{ runner.os }}-npm-
+
+      # ========== 依赖安装（使用 npm ci 更快） ==========
+      - name: '[1] Install dependencies'
         shell: powershell
         run: |
-          if (Test-Path "electron\dist") {
-            Remove-Item -Recurse -Force "electron\dist"
-          }
+          $jobs = @()
+          $jobs += Start-Job { cd server; npm ci }
+          $jobs += Start-Job { cd client; npm ci }
+          $jobs | Wait-Job | Receive-Job
+          $jobs | ForEach-Object { if ($_.State -eq 'Failed') { exit 1 } }
 
-      - name: '[1] npm install server'
+      # ========== 构建 ==========
+      - name: '[2] Build server & client'
         shell: powershell
         run: |
-          cd server
-          npm install
-          if ($LASTEXITCODE -ne 0) { throw "server npm install failed" }
-
-      - name: '[2] npm install client'
-        shell: powershell
-        run: |
-          cd client
-          npm install
-          if ($LASTEXITCODE -ne 0) { throw "client npm install failed" }
-
-      - name: '[3] build server'
-        shell: powershell
-        run: |
-          cd server
-          npx --yes tsc
+          cd server; npx tsc
           if ($LASTEXITCODE -ne 0) { throw "server build failed" }
-
-      - name: '[4] build client'
-        shell: powershell
-        run: |
-          cd client
-          npx --yes vite build
+          cd ../client; npx vite build
           if ($LASTEXITCODE -ne 0) { throw "client build failed" }
 
-      - name: '[5] Replace server node_modules with production-only'
+      # ========== 优化：Server 只保留生产依赖 ==========
+      - name: '[3] Prune server devDependencies'
         shell: powershell
         run: |
           cd server
-          Remove-Item -Recurse -Force node_modules
-          npm install --omit=dev
-          if ($LASTEXITCODE -ne 0) { throw "server prod install failed" }
+          npm prune --omit=dev
+          if ($LASTEXITCODE -ne 0) { throw "server prune failed" }
 
-      - name: '[6] compile electron'
+      # ========== Electron 构建 ==========
+      - name: '[4] Install & compile electron'
         shell: powershell
         run: |
           cd electron
-          npm install
-          if ($LASTEXITCODE -ne 0) { throw "electron npm install failed" }
+          npm ci
+          if ($LASTEXITCODE -ne 0) { throw "electron npm ci failed" }
           node ".\node_modules\typescript\bin\tsc"
           if ($LASTEXITCODE -ne 0) { throw "electron tsc failed" }
 
-      - name: '[6.5] copy app-builder-bin from pnpm store'
-        shell: powershell
-        run: |
-          $pnpmStore = "$env:GITHUB_WORKSPACE\node_modules\.pnpm"
-          if (-not (Test-Path $pnpmStore)) {
-            Write-Host "pnpm store not found at $pnpmStore, skipping app-builder-bin copy"
-            exit 0
-          }
-          $appBuilderDir = Get-ChildItem $pnpmStore -Filter "app-builder-bin*" -Directory -ErrorAction SilentlyContinue | Select-Object -First 1
-          if ($appBuilderDir) {
-            $src = Join-Path $appBuilderDir.FullName "node_modules\app-builder-bin"
-            $dst = "electron\node_modules\app-builder-bin"
-            if (Test-Path $src) {
-              robocopy $src $dst /E /NFL /NDL /NJH /NJS /NC /NS 2>&1 | Out-Null
-              Write-Host "app-builder-bin copied successfully"
-            } else {
-              Write-Host "Source not found: $src"
-            }
-          } else {
-            Write-Host "app-builder-bin not found in pnpm store"
-          }
-
-      - name: '[7] electron-builder pack'
+      - name: '[5] electron-builder pack'
         shell: powershell
         run: |
           cd electron
@@ -111,9 +111,11 @@ jobs:
         with:
           name: windows-installer
           path: electron/dist/release/*.exe
+          retention-days: 7
 
   build-macos:
     runs-on: macos-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
 
@@ -125,47 +127,63 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: ${{ env.NODE_VERSION }}
 
-      - name: '[0] Clean previous build output'
+      # ========== 缓存优化 ==========
+      - name: Cache Electron
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/Library/Caches/electron
+            ~/Library/Caches/electron-builder
+            ${{ github.workspace }}/.cache/electron-builder
+          key: ${{ runner.os }}-electron-${{ hashFiles('electron/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-electron-
+
+      - name: Cache node_modules
+        uses: actions/cache@v4
+        with:
+          path: |
+            server/node_modules
+            client/node_modules
+            electron/node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('server/package-lock.json', 'client/package-lock.json', 'electron/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Cache npm
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: ${{ runner.os }}-npm-
+
+      # ========== 依赖安装（并行） ==========
+      - name: '[1] Install dependencies'
         run: |
-          if [ -d "electron/dist" ]; then
-            rm -rf electron/dist
-          fi
+          (cd server && npm ci) &
+          (cd client && npm ci) &
+          wait
 
-      - name: '[1] npm install server'
+      # ========== 构建 ==========
+      - name: '[2] Build server & client'
         run: |
-          cd server
-          npm install
+          cd server && npx tsc
+          cd ../client && npx vite build
 
-      - name: '[2] npm install client'
-        run: |
-          cd client
-          npm install
+      # ========== 优化：Server 只保留生产依赖 ==========
+      - name: '[3] Prune server devDependencies'
+        run: cd server && npm prune --omit=dev
 
-      - name: '[3] build server'
-        run: |
-          cd server
-          npx tsc
-
-      - name: '[4] build client'
-        run: |
-          cd client
-          npx vite build
-
-      - name: '[5] Replace server node_modules with production-only'
-        run: |
-          cd server
-          rm -rf node_modules
-          npm install --omit=dev
-
-      - name: '[6] compile electron'
+      # ========== Electron 构建 ==========
+      - name: '[4] Install & compile electron'
         run: |
           cd electron
-          npm install
+          npm ci
           node "./node_modules/typescript/bin/tsc"
 
-      - name: '[7] electron-builder pack'
+      - name: '[5] electron-builder pack'
         run: |
           cd electron
           node "./node_modules/electron-builder/cli.js" --config electron-builder.yml
@@ -177,11 +195,13 @@ jobs:
           path: |
             electron/dist/release/*.dmg
             electron/dist/release/*.zip
+          retention-days: 7
 
   release:
     needs: [build-windows, build-macos]
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/v')
+    timeout-minutes: 5
     permissions:
       contents: write
     steps:
@@ -191,6 +211,7 @@ jobs:
           path: artifacts
 
       - name: Delete existing release
+        continue-on-error: true
         run: |
           gh release delete ${{ github.ref_name }} -y || true
         env:
@@ -205,5 +226,6 @@ jobs:
             artifacts/macos-installer/*.zip
           draft: false
           prerelease: false
+          generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
