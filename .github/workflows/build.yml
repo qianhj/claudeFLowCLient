@@ -62,15 +62,14 @@ jobs:
           key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
           restore-keys: ${{ runner.os }}-npm-
 
-      # ========== 依赖安装（使用 npm ci 更快） ==========
+      # ========== 依赖安装 ==========
       - name: '[1] Install dependencies'
         shell: powershell
         run: |
-          $jobs = @()
-          $jobs += Start-Job { cd server; npm ci }
-          $jobs += Start-Job { cd client; npm ci }
-          $jobs | Wait-Job | Receive-Job
-          $jobs | ForEach-Object { if ($_.State -eq 'Failed') { exit 1 } }
+          cd server; npm ci
+          if ($LASTEXITCODE -ne 0) { throw "server npm ci failed" }
+          cd ..\client; npm ci
+          if ($LASTEXITCODE -ne 0) { throw "client npm ci failed" }
 
       # ========== 构建 ==========
       - name: '[2] Build server & client'
