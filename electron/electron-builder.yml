@@ -16,7 +16,7 @@ extraResources:
   - from: "../server/package.json"
     to: "server/package.json"
   - from: "../server/node_modules"
-    to: "node_modules"
+    to: "server/node_modules"
     filter:
       - "**/*"
       - "!**/.cache/**"
