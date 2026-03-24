@@ -22,10 +22,12 @@ jobs:
           cache: 'pnpm'
 
       - name: Configure Git to use HTTPS
-        run: git config --global url."https://github.com/".insteadOf "git@github.com:"
+        run: |
+          git config --global url."https://github.com/".insteadOf "git@github.com:"
+          git config --global url."https://github.com/".insteadOf "ssh://git@github.com/"
 
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --no-frozen-lockfile
 
       - name: Build server & client
         run: pnpm build
@@ -33,7 +35,7 @@ jobs:
       - name: Build Electron
         run: |
           cd electron
-          pnpm install
+          pnpm install --no-frozen-lockfile
           pnpm build
           pnpm run:pack
 
@@ -58,10 +60,12 @@ jobs:
           cache: 'pnpm'
 
       - name: Configure Git to use HTTPS
-        run: git config --global url."https://github.com/".insteadOf "git@github.com:"
+        run: |
+          git config --global url."https://github.com/".insteadOf "git@github.com:"
+          git config --global url."https://github.com/".insteadOf "ssh://git@github.com/"
 
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --no-frozen-lockfile
 
       - name: Build server & client
         run: pnpm build
@@ -69,7 +73,7 @@ jobs:
       - name: Build Electron
         run: |
           cd electron
-          pnpm install
+          pnpm install --no-frozen-lockfile
           pnpm build
           pnpm run:pack
 
