@@ -13,7 +13,6 @@ export type ArtifactType =
   | "text/plain"
   | "code"
   | "mermaid"
-  | "application/vnd.olympus`
   | string;
 
 export interface Artifact {

@@ -5,15 +5,15 @@ import CodeViewer from "../ide/CodeViewer";
 
 export default function FileViewModal() {
   const { fileViewModalOpen, setFileViewModalOpen } = useUIStore();
-  const { openFilePath, closeFile } = useFileStore();
+  const { activeFilePath, closeFile } = useFileStore();
 
-  if (!fileViewModalOpen || !openFilePath) return null;
+  if (!fileViewModalOpen || !activeFilePath) return null;
 
-  const fileName = openFilePath.split(/[/\\]/).pop() || "";
+  const fileName = activeFilePath.split(/[/\\]/).pop() || "";
 
   const handleClose = () => {
     setFileViewModalOpen(false);
-    closeFile();
+    if (activeFilePath) closeFile(activeFilePath);
   };
 
   return (
@@ -31,7 +31,7 @@ export default function FileViewModal() {
           </div>
           {/* Path breadcrumb */}
           <span className="text-[10px] text-slate-600 truncate px-3 font-mono flex-1 min-w-0">
-            {openFilePath}
+            {activeFilePath}
           </span>
           {/* Close */}
           <button

@@ -92,8 +92,23 @@ const appTheme = EditorView.theme({
 });
 
 // ── Main component ──────────────────────────────────────────────────────────
-export default function CodeViewer() {
-  const { openFilePath, openFileContent, fileLoading, fileError } = useFileStore();
+interface CodeViewerProps {
+  filePath?: string;
+  content?: string;
+  readOnly?: boolean;
+}
+
+export default function CodeViewer({ filePath: propPath, content: propContent, readOnly }: CodeViewerProps = {}) {
+  const { openFiles, activeFilePath } = useFileStore();
+
+  // Determine which file to display
+  const targetPath = propPath ?? activeFilePath;
+  const openFile = openFiles.find(f => f.path === targetPath);
+  const openFilePath = openFile?.path ?? null;
+  const openFileContent = openFile?.content;
+  const fileLoading = openFile?.loading ?? false;
+  const fileError = openFile?.error ?? null;
+  const fileContent = propContent ?? openFileContent?.content ?? "";
 
   const editorRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
@@ -106,7 +121,7 @@ export default function CodeViewer() {
   const [cursor, setCursor] = useState({ line: 1, col: 1 });
 
   // Hold latest save fn in a ref so the keymap closure is never stale
-  const saveRef = useRef<() => Promise<void>>();
+  const saveRef = useRef<(() => Promise<void>) | undefined>(undefined);
 
   const handleSave = useCallback(async () => {
     if (!viewRef.current || !openFilePath || !isDirty) return;

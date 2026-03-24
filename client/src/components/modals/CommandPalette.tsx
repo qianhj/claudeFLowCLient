@@ -24,7 +24,6 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
   const itemRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   const {
-    setMainView,
     setSettingsPageOpen,
     setFolderBrowserOpen,
     sidebarTab,
@@ -35,31 +34,6 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
   const { openFiles } = useFileStore();
 
   const commands = useMemo<CommandItem[]>(() => [
-    // View commands
-    {
-      id: "view-chat",
-      label: "切换到对话视图",
-      description: "显示聊天界面",
-      icon: <MessageSquare size={16} />,
-      shortcut: "Ctrl+1",
-      action: () => { setMainView("chat"); onClose(); },
-    },
-    {
-      id: "view-editor",
-      label: "切换到编辑器视图",
-      description: "显示代码编辑器",
-      icon: <FileCode size={16} />,
-      shortcut: "Ctrl+2",
-      action: () => { setMainView("editor"); onClose(); },
-    },
-    {
-      id: "view-split",
-      label: "切换到分屏视图",
-      description: "同时显示对话和编辑器",
-      icon: <Layout size={16} />,
-      shortcut: "Ctrl+3",
-      action: () => { setMainView("split"); onClose(); },
-    },
     // Sidebar commands
     {
       id: "sidebar-files",
@@ -67,6 +41,20 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
       description: "在左侧栏显示项目文件",
       icon: <Folder size={16} />,
       action: () => { setSidebarTab("files"); setLeftNavPanel("files"); onClose(); },
+    },
+    {
+      id: "sidebar-sessions",
+      label: "显示会话列表",
+      description: "查看历史会话",
+      icon: <MessageSquare size={16} />,
+      action: () => { setSidebarTab("sessions"); onClose(); },
+    },
+    {
+      id: "sidebar-agents",
+      label: "显示 Agent 面板",
+      description: "查看 Agent 管理",
+      icon: <Zap size={16} />,
+      action: () => { setSidebarTab("agents"); onClose(); },
     },
     {
       id: "sidebar-git",
@@ -103,7 +91,7 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
         onClose();
       },
     },
-  ], [setMainView, setSettingsPageOpen, setFolderBrowserOpen, setSidebarTab, setLeftNavPanel, onClose]);
+  ], [setSettingsPageOpen, setFolderBrowserOpen, setSidebarTab, setLeftNavPanel, onClose]);
 
   const filteredCommands = useMemo(() => {
     if (!query.trim()) return commands;
