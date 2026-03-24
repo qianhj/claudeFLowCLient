@@ -24,7 +24,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
 
       - name: '[0] Clean previous build output'
         shell: powershell
@@ -127,7 +126,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
 
       - name: '[0] Clean previous build output'
         run: |
