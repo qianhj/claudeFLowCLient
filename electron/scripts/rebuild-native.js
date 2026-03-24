@@ -43,9 +43,9 @@ exports.default = async function (context) {
     return;
   }
 
-  const modulesDir = path.join(appOutDir, "resources", "node_modules");
+  const modulesDir = path.join(appOutDir, "resources", "server", "node_modules");
   if (!fs.existsSync(modulesDir)) {
-    console.log("[rebuild] No node_modules in resources, skipping");
+    console.log("[rebuild] No node_modules in resources/server, skipping");
     return;
   }
 
