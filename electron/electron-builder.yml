@@ -25,11 +25,6 @@ extraResources:
     filter:
       - "**/*"
 
-publish:
-  provider: github
-  owner: qianhj
-  repo: claudeFLowCLient
-
 directories:
   output: "dist/release"
   buildResources: "assets"
