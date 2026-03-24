@@ -25,6 +25,12 @@ jobs:
         run: |
           git config --global url."https://github.com/".insteadOf "git@github.com:"
           git config --global url."https://github.com/".insteadOf "ssh://git@github.com/"
+          git config --global url."https://github.com/".insteadOf "git://github.com/"
+
+      - name: Configure pnpm
+        run: |
+          pnpm config set git-url-replacement "git@github.com:->https://github.com/" --global
+          pnpm config set git-url-replacement "ssh://git@github.com/->https://github.com/" --global
 
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
@@ -63,6 +69,12 @@ jobs:
         run: |
           git config --global url."https://github.com/".insteadOf "git@github.com:"
           git config --global url."https://github.com/".insteadOf "ssh://git@github.com/"
+          git config --global url."https://github.com/".insteadOf "git://github.com/"
+
+      - name: Configure pnpm
+        run: |
+          pnpm config set git-url-replacement "git@github.com:->https://github.com/" --global
+          pnpm config set git-url-replacement "ssh://git@github.com/->https://github.com/" --global
 
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
