@@ -6,19 +6,17 @@ on:
       - 'v*'
   workflow_dispatch:
 
-env:
-  # 强制 Git 使用 HTTPS 代替 SSH
-  GIT_CONFIG_GLOBAL: ~/.gitconfig
-
 jobs:
   build-windows:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Git HTTPS
-        shell: bash
+      - name: Setup Git HTTPS (Windows)
+        shell: powershell
         run: |
+          $gitConfig = "$env:USERPROFILE\.gitconfig"
+          if (-not (Test-Path $gitConfig)) { New-Item -ItemType File -Path $gitConfig -Force }
           git config --global url."https://github.com/".insteadOf "git@github.com:"
           git config --global url."https://github.com/".insteadOf "ssh://git@github.com/"
 
@@ -32,15 +30,18 @@ jobs:
           cache: 'pnpm'
 
       - name: Install dependencies
-        shell: bash
-        run: pnpm install --no-frozen-lockfile
+        shell: powershell
+        run: |
+          $env:GIT_CONFIG_GLOBAL = "$env:USERPROFILE\.gitconfig"
+          pnpm install --no-frozen-lockfile
 
       - name: Build server & client
         run: pnpm build
 
       - name: Build Electron
-        shell: bash
+        shell: powershell
         run: |
+          $env:GIT_CONFIG_GLOBAL = "$env:USERPROFILE\.gitconfig"
           cd electron
           pnpm install --no-frozen-lockfile
           pnpm build
@@ -57,8 +58,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Git HTTPS
+      - name: Setup Git HTTPS (macOS)
         run: |
+          touch ~/.gitconfig
           git config --global url."https://github.com/".insteadOf "git@github.com:"
           git config --global url."https://github.com/".insteadOf "ssh://git@github.com/"
 
@@ -72,13 +74,16 @@ jobs:
           cache: 'pnpm'
 
       - name: Install dependencies
-        run: pnpm install --no-frozen-lockfile
+        run: |
+          export GIT_CONFIG_GLOBAL="$HOME/.gitconfig"
+          pnpm install --no-frozen-lockfile
 
       - name: Build server & client
         run: pnpm build
 
       - name: Build Electron
         run: |
+          export GIT_CONFIG_GLOBAL="$HOME/.gitconfig"
           cd electron
           pnpm install --no-frozen-lockfile
           pnpm build
@@ -104,6 +109,12 @@ jobs:
         with:
           path: artifacts
 
+      - name: Delete existing release
+        run: |
+          gh release delete ${{ github.ref_name }} -y || true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
@@ -113,7 +124,5 @@ jobs:
             artifacts/macos-installer/*.zip
           draft: false
           prerelease: false
-          # 覆盖已存在的文件
-          fail_on_unmatched_files: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
