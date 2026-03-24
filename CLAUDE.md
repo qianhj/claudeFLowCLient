@@ -63,10 +63,20 @@ hz-cc-flow-src/
 ## 开发命令
 
 ```bash
-# ⚠️ Windows 下 bash 环境中 pnpm 路径有问题，必须用 PowerShell 启动
+# ========== Windows ==========
+# ⚠️ bash 环境中 pnpm 路径有问题，必须用 PowerShell 启动
 powershell -Command "cd D:\hz-cc-flow-src; pnpm --filter server dev"   # 后端 :3001
 powershell -Command "cd D:\hz-cc-flow-src; pnpm --filter client dev"   # 前端 :5173
 
+# ========== macOS / Linux ==========
+# 首次安装需确保 Xcode 命令行工具已安装（用于编译 node-pty）
+xcode-select --install  # macOS only
+
+pnpm install
+pnpm --filter server dev   # 后端 :3001
+pnpm --filter client dev   # 前端 :5173
+
+# ========== 通用命令 ==========
 pnpm build            # 构建生产版本
 pnpm start            # 启动生产后端（需先 build）
 pnpm lint             # ESLint 检查
@@ -114,7 +124,8 @@ pnpm electron:build   # 构建 Electron 安装包
 
 ## 注意事项
 
-- `node-pty` 需要本机编译（`node-gyp`），安装前确认 Python 和 C++ 构建工具已就位
+- `node-pty` 需要本机编译（`node-gyp`），**macOS 需安装 Xcode 命令行工具**：`xcode-select --install`
+- Windows 需确保 Python 和 C++ 构建工具已就位
 - Windows 下 Claude Code CLI 需要 Git Bash，路径由 `CLAUDE_CODE_GIT_BASH_PATH` 环境变量覆盖
 - 权限请求（HIL）超时为 60 秒，超时后自动拒绝
 - `maxBudgetUsd` 选项可在 Settings 页面配置，防止单次任务费用失控

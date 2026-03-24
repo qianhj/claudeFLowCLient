@@ -35,9 +35,9 @@ win:
     - target: nsis
       arch:
         - x64
-  # 不签名（无证书），禁用代码签名工具下载
-  signingHashAlgorithms: []
-  sign: null
+  # 不签名（无证书）
+  signtoolOptions:
+    signingHashAlgorithms: []
 
 nsis:
   oneClick: false
