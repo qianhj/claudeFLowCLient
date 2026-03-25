@@ -6,60 +6,114 @@ on:
       - 'v*'
   workflow_dispatch:
 
+# 防止并发构建冲突
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
-  # 国内镜像加速 Electron 下载
   ELECTRON_MIRROR: "https://npmmirror.com/mirrors/electron/"
   ELECTRON_BUILDER_CACHE: "${{ github.workspace }}/.cache/electron-builder"
   NODE_VERSION: 20
+  PNPM_VERSION: 9
 
 jobs:
   build-macos:
     runs-on: macos-latest
-    timeout-minutes: 20
+    timeout-minutes: 45
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - name: Setup Git HTTPS (macOS)
+      - name: Install Xcode Command Line Tools
         run: |
-          touch ~/.gitconfig
-          git config --global url."https://github.com/".insteadOf "git@github.com:"
-          git config --global url."https://github.com/".insteadOf "ssh://git@github.com/"
+          echo "Checking Xcode Command Line Tools..."
+          xcode-select --install 2>/dev/null || true
+          echo "GCC version:"
+          gcc --version
+          echo "Python version:"
+          python3 --version
 
-      - uses: actions/setup-node@v4
+      - name: Setup Git HTTPS
+        run: |
+          git config --global url."https://github.com/".insteadOf "git@github.com:"
+          git config --global url."https://github.com/".insteadOf "ssh://git@github.com:"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
 
       - name: Install pnpm
-        uses: pnpm/action-setup@v2
+        uses: pnpm/action-setup@v4
         with:
-          version: 9
+          version: ${{ env.PNPM_VERSION }}
+          run_install: false
 
-      # ========== 依赖安装 ==========
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Setup Electron cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ github.workspace }}/.cache/electron
+            ${{ github.workspace }}/.cache/electron-builder
+          key: ${{ runner.os }}-electron-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-electron-
+
       - name: '[1] Install dependencies'
-        run: pnpm install --no-frozen-lockfile
+        run: |
+          pnpm install --frozen-lockfile
+        env:
+          PYTHON: python3
+          npm_config_python: python3
 
-      # ========== 构建 ==========
       - name: '[2] Build server & client'
         run: |
           pnpm --filter server build
           pnpm --filter client build
 
-      # ========== 优化：创建精简版 server ==========
       - name: '[3] Create optimized server'
         run: |
-          # 创建精简版 server（仅生产依赖）
           rm -rf electron/server-prod
           mkdir -p electron/server-prod
-          # 复制 package.json
           cp server/package.json electron/server-prod/
-          # 安装生产依赖（使用 npm 避免 pnpm 链接问题）
+
           cd electron/server-prod
-          npm install --omit=dev --no-audit --no-fund
+
+          # 创建独立 workspace 配置
+          cat > pnpm-workspace.yaml << 'EOF'
+          packages:
+            - '.'
+          EOF
+
+          # 安装生产依赖
+          pnpm install --prod --frozen-lockfile
+
+          # 验证 node-pty
+          if [ ! -d "node_modules/node-pty" ]; then
+            echo "::error::node-pty not installed!"
+            exit 1
+          fi
+
           cd ../..
-          # 复制 dist
           cp -r server/dist electron/server-prod/
 
-      # ========== Electron 构建 ==========
+          echo "Server-prod contents:"
+          ls -la electron/server-prod/
+
       - name: '[4] Build electron'
         run: |
           pnpm --filter electron build
@@ -67,7 +121,25 @@ jobs:
       - name: '[5] electron-builder pack'
         run: |
           cd electron
-          pnpm exec electron-builder --config electron-builder.yml
+          pnpm exec electron-builder --config electron-builder.yml --mac
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: false
+
+      - name: '[6] Verify build artifacts'
+        run: |
+          echo "Build outputs:"
+          ls -la electron/dist/release/ || echo "No release directory"
+
+          echo "Checking for .node files:"
+          find electron/dist/release -name "*.node" -type f 2>/dev/null | head -10 || echo "No .node files found"
+
+          # 验证 DMG 存在
+          dmg_count=$(find electron/dist/release -name "*.dmg" | wc -l)
+          if [ "$dmg_count" -eq 0 ]; then
+            echo "::error::No DMG file found"
+            exit 1
+          fi
+          echo "Found $dmg_count DMG file(s)"
 
       - name: Upload macOS artifact
         uses: actions/upload-artifact@v4
@@ -77,35 +149,36 @@ jobs:
             electron/dist/release/*.dmg
             electron/dist/release/*.zip
           retention-days: 7
+          if-no-files-found: error
 
   release:
     needs: [build-macos]
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/v')
-    timeout-minutes: 5
+    timeout-minutes: 10
     permissions:
       contents: write
     steps:
-      - name: Download all artifacts
+      - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
-          path: artifacts
+          name: macos-installer
+          path: artifacts/
 
-      - name: Delete existing release
-        continue-on-error: true
+      - name: List artifacts
         run: |
-          gh release delete ${{ github.ref_name }} -y || true
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          echo "Downloaded artifacts:"
+          ls -la artifacts/
 
       - name: Create Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           files: |
-            artifacts/macos-installer/*.dmg
-            artifacts/macos-installer/*.zip
+            artifacts/*.dmg
+            artifacts/*.zip
           draft: false
-          prerelease: false
+          prerelease: ${{ contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') || contains(github.ref_name, 'rc') }}
           generate_release_notes: true
+          fail_on_unmatched_files: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
