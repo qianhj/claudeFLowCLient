@@ -2,27 +2,27 @@
   "total_count": 1,
   "workflow_runs": [
     {
-      "id": 23537957443,
+      "id": 23538250701,
       "name": "Build macOS",
-      "node_id": "WFR_kwLORuBIzs8AAAAFevi6Qw",
-      "head_branch": "v1.12.8",
-      "head_sha": "8b319008909751d4d7c0ecafe5ef89aa9e36f7ac",
+      "node_id": "WFR_kwLORuBIzs8AAAAFev0zzQ",
+      "head_branch": "v1.12.9",
+      "head_sha": "93a822ed868efb0fd6a444d24a3ffa5025a35e34",
       "path": ".github/workflows/build.yml",
       "display_title": "Build macOS",
-      "run_number": 48,
+      "run_number": 49,
       "event": "push",
       "status": "completed",
       "conclusion": "failure",
       "workflow_id": 249989661,
-      "check_suite_id": 61946414472,
-      "check_suite_node_id": "CS_kwDORuBIzs8AAAAObEtFiA",
-      "url": "https://api.github.com/repos/qianhj/claudeFLowCLient/actions/runs/23537957443",
-      "html_url": "https://github.com/qianhj/claudeFLowCLient/actions/runs/23537957443",
+      "check_suite_id": 61947454069,
+      "check_suite_node_id": "CS_kwDORuBIzs8AAAAObFsidQ",
+      "url": "https://api.github.com/repos/qianhj/claudeFLowCLient/actions/runs/23538250701",
+      "html_url": "https://github.com/qianhj/claudeFLowCLient/actions/runs/23538250701",
       "pull_requests": [
 
       ],
-      "created_at": "2026-03-25T11:08:47Z",
-      "updated_at": "2026-03-25T11:10:28Z",
+      "created_at": "2026-03-25T11:16:28Z",
+      "updated_at": "2026-03-25T11:17:47Z",
       "actor": {
         "login": "qianhj",
         "id": 26484491,
@@ -48,7 +48,7 @@
       "referenced_workflows": [
 
       ],
-      "run_started_at": "2026-03-25T11:08:47Z",
+      "run_started_at": "2026-03-25T11:16:28Z",
       "triggering_actor": {
         "login": "qianhj",
         "id": 26484491,
@@ -70,19 +70,19 @@
         "user_view_type": "public",
         "site_admin": false
       },
-      "jobs_url": "https://api.github.com/repos/qianhj/claudeFLowCLient/actions/runs/23537957443/jobs",
-      "logs_url": "https://api.github.com/repos/qianhj/claudeFLowCLient/actions/runs/23537957443/logs",
-      "check_suite_url": "https://api.github.com/repos/qianhj/claudeFLowCLient/check-suites/61946414472",
-      "artifacts_url": "https://api.github.com/repos/qianhj/claudeFLowCLient/actions/runs/23537957443/artifacts",
-      "cancel_url": "https://api.github.com/repos/qianhj/claudeFLowCLient/actions/runs/23537957443/cancel",
-      "rerun_url": "https://api.github.com/repos/qianhj/claudeFLowCLient/actions/runs/23537957443/rerun",
+      "jobs_url": "https://api.github.com/repos/qianhj/claudeFLowCLient/actions/runs/23538250701/jobs",
+      "logs_url": "https://api.github.com/repos/qianhj/claudeFLowCLient/actions/runs/23538250701/logs",
+      "check_suite_url": "https://api.github.com/repos/qianhj/claudeFLowCLient/check-suites/61947454069",
+      "artifacts_url": "https://api.github.com/repos/qianhj/claudeFLowCLient/actions/runs/23538250701/artifacts",
+      "cancel_url": "https://api.github.com/repos/qianhj/claudeFLowCLient/actions/runs/23538250701/cancel",
+      "rerun_url": "https://api.github.com/repos/qianhj/claudeFLowCLient/actions/runs/23538250701/rerun",
       "previous_attempt_url": null,
       "workflow_url": "https://api.github.com/repos/qianhj/claudeFLowCLient/actions/workflows/249989661",
       "head_commit": {
-        "id": "8b319008909751d4d7c0ecafe5ef89aa9e36f7ac",
-        "tree_id": "c5daa46f36fffe79f56f1f625383211272e385f0",
-        "message": "ci: disable afterPack hook to test basic electron-builder build",
-        "timestamp": "2026-03-25T11:08:23Z",
+        "id": "93a822ed868efb0fd6a444d24a3ffa5025a35e34",
+        "tree_id": "f21d5b39e0a3ab7463350ecfda642ce4ba72ba9e",
+        "message": "ci: fix electron-builder.yml - remove missing assets directory",
+        "timestamp": "2026-03-25T11:16:16Z",
         "author": {
           "name": "qianhj",
           "email": "1247879478@qq.com"

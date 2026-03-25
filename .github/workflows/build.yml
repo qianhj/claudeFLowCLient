@@ -122,11 +122,20 @@ jobs:
           ls -la server-prod/ 2>/dev/null || echo "server-prod not found!"
           echo "Checking server-prod/node_modules:"
           ls -la server-prod/node_modules/ 2>/dev/null | head -20 || echo "node_modules not found!"
+          echo "Checking dist:"
+          ls -la dist/ 2>/dev/null || echo "dist not found!"
+          echo "Checking electron package.json:"
+          cat package.json
           echo "Running electron-builder..."
-          pnpm exec electron-builder --config electron-builder.yml --mac
+          pnpm exec electron-builder --config electron-builder.yml --mac 2>&1 | tee electron-builder.log || {
+            echo "electron-builder failed with exit code $?"
+            echo "=== electron-builder.log ==="
+            cat electron-builder.log
+            exit 1
+          }
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: false
-          ELECTRON_BUILDER_LOGGING: "true"
+          DEBUG: "electron-builder,electron-builder:*"
 
       - name: '[6] Verify build artifacts'
         run: |
