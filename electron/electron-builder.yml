@@ -64,8 +64,8 @@ linux:
   category: Development
   maintainer: "HZ"
 
-# 重建原生模块（node-pty）
-afterPack: "scripts/rebuild-native.js"
+# 重建原生模块（node-pty）- 暂时禁用测试
+# afterPack: "scripts/rebuild-native.js"
 
 asar: true
 asarUnpack:

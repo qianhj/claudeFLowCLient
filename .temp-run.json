@@ -2,27 +2,27 @@
   "total_count": 1,
   "workflow_runs": [
     {
-      "id": 23534368483,
+      "id": 23537779575,
       "name": "Build macOS",
-      "node_id": "WFR_kwLORuBIzs8AAAAFesH24w",
-      "head_branch": "v1.12.6",
-      "head_sha": "6b749bf33afc7ffbac98e2115f6a2f6398e5cb7f",
+      "node_id": "WFR_kwLORuBIzs8AAAAFevYDdw",
+      "head_branch": "v1.12.7",
+      "head_sha": "503b1e9d8a90d8a0be1ecc2a430475ceb423da10",
       "path": ".github/workflows/build.yml",
-      "display_title": "ci: fix server-prod to use npm instead of pnpm",
-      "run_number": 46,
+      "display_title": "Build macOS",
+      "run_number": 47,
       "event": "push",
       "status": "completed",
       "conclusion": "failure",
       "workflow_id": 249989661,
-      "check_suite_id": 61933855434,
-      "check_suite_node_id": "CS_kwDORuBIzs8AAAAOa4uiyg",
-      "url": "https://api.github.com/repos/qianhj/claudeFLowCLient/actions/runs/23534368483",
-      "html_url": "https://github.com/qianhj/claudeFLowCLient/actions/runs/23534368483",
+      "check_suite_id": 61945786425,
+      "check_suite_node_id": "CS_kwDORuBIzs8AAAAObEGwOQ",
+      "url": "https://api.github.com/repos/qianhj/claudeFLowCLient/actions/runs/23537779575",
+      "html_url": "https://github.com/qianhj/claudeFLowCLient/actions/runs/23537779575",
       "pull_requests": [
 
       ],
-      "created_at": "2026-03-25T09:37:08Z",
-      "updated_at": "2026-03-25T09:38:39Z",
+      "created_at": "2026-03-25T11:04:11Z",
+      "updated_at": "2026-03-25T11:05:33Z",
       "actor": {
         "login": "qianhj",
         "id": 26484491,
@@ -48,7 +48,7 @@
       "referenced_workflows": [
 
       ],
-      "run_started_at": "2026-03-25T09:37:08Z",
+      "run_started_at": "2026-03-25T11:04:11Z",
       "triggering_actor": {
         "login": "qianhj",
         "id": 26484491,
@@ -70,19 +70,19 @@
         "user_view_type": "public",
         "site_admin": false
       },
-      "jobs_url": "https://api.github.com/repos/qianhj/claudeFLowCLient/actions/runs/23534368483/jobs",
-      "logs_url": "https://api.github.com/repos/qianhj/claudeFLowCLient/actions/runs/23534368483/logs",
-      "check_suite_url": "https://api.github.com/repos/qianhj/claudeFLowCLient/check-suites/61933855434",
-      "artifacts_url": "https://api.github.com/repos/qianhj/claudeFLowCLient/actions/runs/23534368483/artifacts",
-      "cancel_url": "https://api.github.com/repos/qianhj/claudeFLowCLient/actions/runs/23534368483/cancel",
-      "rerun_url": "https://api.github.com/repos/qianhj/claudeFLowCLient/actions/runs/23534368483/rerun",
+      "jobs_url": "https://api.github.com/repos/qianhj/claudeFLowCLient/actions/runs/23537779575/jobs",
+      "logs_url": "https://api.github.com/repos/qianhj/claudeFLowCLient/actions/runs/23537779575/logs",
+      "check_suite_url": "https://api.github.com/repos/qianhj/claudeFLowCLient/check-suites/61945786425",
+      "artifacts_url": "https://api.github.com/repos/qianhj/claudeFLowCLient/actions/runs/23537779575/artifacts",
+      "cancel_url": "https://api.github.com/repos/qianhj/claudeFLowCLient/actions/runs/23537779575/cancel",
+      "rerun_url": "https://api.github.com/repos/qianhj/claudeFLowCLient/actions/runs/23537779575/rerun",
       "previous_attempt_url": null,
       "workflow_url": "https://api.github.com/repos/qianhj/claudeFLowCLient/actions/workflows/249989661",
       "head_commit": {
-        "id": "6b749bf33afc7ffbac98e2115f6a2f6398e5cb7f",
-        "tree_id": "fc74a8f7b90f4b29b61da746633df004ca2ad307",
-        "message": "ci: fix server-prod to use npm instead of pnpm",
-        "timestamp": "2026-03-25T09:36:57Z",
+        "id": "503b1e9d8a90d8a0be1ecc2a430475ceb423da10",
+        "tree_id": "dac130212f35498da06837a056a3ed217c7d1342",
+        "message": "ci: add debug logging to electron-builder and rebuild-native.js",
+        "timestamp": "2026-03-25T11:04:00Z",
         "author": {
           "name": "qianhj",
           "email": "1247879478@qq.com"
