@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 env:
-  # 国内镜像加速 Electron 下载（如不需要可删除或改为 github 官方）
+  # 国内镜像加速 Electron 下载
   ELECTRON_MIRROR: "https://npmmirror.com/mirrors/electron/"
   ELECTRON_BUILDER_CACHE: "${{ github.workspace }}/.cache/electron-builder"
   NODE_VERSION: 20
@@ -15,7 +15,7 @@ env:
 jobs:
   build-macos:
     runs-on: macos-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
 
@@ -29,64 +29,39 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
 
-      # ========== 缓存优化 ==========
-      - name: Cache Electron
-        uses: actions/cache@v4
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
         with:
-          path: |
-            ~/Library/Caches/electron
-            ~/Library/Caches/electron-builder
-            ${{ github.workspace }}/.cache/electron-builder
-          key: ${{ runner.os }}-electron-${{ hashFiles('electron/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-electron-
+          version: 9
 
-      - name: Cache node_modules
-        uses: actions/cache@v4
-        with:
-          path: |
-            server/node_modules
-            client/node_modules
-            electron/node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('server/package-lock.json', 'client/package-lock.json', 'electron/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
-
-      - name: Cache npm
-        uses: actions/cache@v4
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: ${{ runner.os }}-npm-
-
-      # ========== 依赖安装（并行） ==========
+      # ========== 依赖安装 ==========
       - name: '[1] Install dependencies'
-        run: |
-          (cd server && npm ci) &
-          (cd client && npm ci) &
-          wait
+        run: pnpm install
 
       # ========== 构建 ==========
       - name: '[2] Build server & client'
         run: |
-          cd server && npx tsc
-          cd ../client && npx vite build
+          pnpm --filter server build
+          pnpm --filter client build
 
-      # ========== 优化：Server 只保留生产依赖 ==========
-      - name: '[3] Prune server devDependencies'
-        run: cd server && npm prune --omit=dev
+      # ========== 优化：创建精简版 server ==========
+      - name: '[3] Create optimized server'
+        run: |
+          # 创建精简版 server（仅生产依赖）
+          rm -rf electron/server-prod
+          pnpm --filter server deploy electron/server-prod --prod --legacy
+          # 复制 dist
+          cp -r server/dist electron/server-prod/
 
       # ========== Electron 构建 ==========
-      - name: '[4] Install & compile electron'
+      - name: '[4] Build electron'
         run: |
-          cd electron
-          npm ci
-          node "./node_modules/typescript/bin/tsc"
+          pnpm --filter electron build
 
       - name: '[5] electron-builder pack'
         run: |
           cd electron
-          node "./node_modules/electron-builder/cli.js" --config electron-builder.yml
+          pnpm exec electron-builder --config electron-builder.yml
 
       - name: Upload macOS artifact
         uses: actions/upload-artifact@v4
