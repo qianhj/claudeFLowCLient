@@ -1,4 +1,4 @@
-name: Build Cross-Platform
+name: Build macOS
 
 on:
   push:
@@ -13,105 +13,6 @@ env:
   NODE_VERSION: 20
 
 jobs:
-  build-windows:
-    runs-on: windows-latest
-    timeout-minutes: 15
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Git HTTPS (Windows)
-        shell: powershell
-        run: |
-          $gitConfig = "$env:USERPROFILE\.gitconfig"
-          if (-not (Test-Path $gitConfig)) { New-Item -ItemType File -Path $gitConfig -Force }
-          git config --global url."https://github.com/".insteadOf "git@github.com:"
-          git config --global url."https://github.com/".insteadOf "ssh://git@github.com/"
-          $env:GIT_CONFIG_GLOBAL = "$env:USERPROFILE\.gitconfig"
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-
-      # ========== 缓存优化 ==========
-      - name: Cache Electron
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/AppData/Local/electron
-            ~/AppData/Local/electron-builder
-            ${{ github.workspace }}/.cache/electron-builder
-          key: ${{ runner.os }}-electron-${{ hashFiles('electron/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-electron-
-
-      - name: Cache node_modules
-        uses: actions/cache@v4
-        with:
-          path: |
-            server/node_modules
-            client/node_modules
-            electron/node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('server/package-lock.json', 'client/package-lock.json', 'electron/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
-
-      - name: Cache npm
-        uses: actions/cache@v4
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: ${{ runner.os }}-npm-
-
-      # ========== 依赖安装 ==========
-      - name: '[1] Install dependencies'
-        shell: powershell
-        run: |
-          cd server; npm ci
-          if ($LASTEXITCODE -ne 0) { throw "server npm ci failed" }
-          cd ..\client; npm ci
-          if ($LASTEXITCODE -ne 0) { throw "client npm ci failed" }
-
-      # ========== 构建 ==========
-      - name: '[2] Build server & client'
-        shell: powershell
-        run: |
-          cd server; npx tsc
-          if ($LASTEXITCODE -ne 0) { throw "server build failed" }
-          cd ../client; npx vite build
-          if ($LASTEXITCODE -ne 0) { throw "client build failed" }
-
-      # ========== 优化：Server 只保留生产依赖 ==========
-      - name: '[3] Prune server devDependencies'
-        shell: powershell
-        run: |
-          cd server
-          npm prune --omit=dev
-          if ($LASTEXITCODE -ne 0) { throw "server prune failed" }
-
-      # ========== Electron 构建 ==========
-      - name: '[4] Install & compile electron'
-        shell: powershell
-        run: |
-          cd electron
-          npm ci
-          if ($LASTEXITCODE -ne 0) { throw "electron npm ci failed" }
-          node ".\node_modules\typescript\bin\tsc"
-          if ($LASTEXITCODE -ne 0) { throw "electron tsc failed" }
-
-      - name: '[5] electron-builder pack'
-        shell: powershell
-        run: |
-          cd electron
-          node ".\node_modules\electron-builder\cli.js" --config electron-builder.yml
-          if ($LASTEXITCODE -ne 0) { throw "electron-builder failed" }
-
-      - name: Upload Windows artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: windows-installer
-          path: electron/dist/release/*.exe
-          retention-days: 7
-
   build-macos:
     runs-on: macos-latest
     timeout-minutes: 15
@@ -197,7 +98,7 @@ jobs:
           retention-days: 7
 
   release:
-    needs: [build-windows, build-macos]
+    needs: [build-macos]
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/v')
     timeout-minutes: 5
@@ -220,7 +121,6 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            artifacts/windows-installer/*.exe
             artifacts/macos-installer/*.dmg
             artifacts/macos-installer/*.zip
           draft: false
