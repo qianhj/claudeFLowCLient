@@ -139,16 +139,37 @@ jobs:
 
       - name: '[6] Verify build artifacts'
         run: |
-          echo "Build outputs:"
-          ls -la electron/dist/release/ || echo "No release directory"
+          echo "=== Full directory tree of electron/dist ==="
+          find electron/dist -type f -name "*" 2>/dev/null | sort || echo "No electron/dist directory"
 
-          echo "Checking for .node files:"
+          echo ""
+          echo "=== Searching for any DMG files in electron/ ==="
+          find electron -name "*.dmg" -type f 2>/dev/null || echo "No DMG files found in electron/"
+
+          echo ""
+          echo "=== Searching for any ZIP files in electron/ ==="
+          find electron -name "*.zip" -type f 2>/dev/null || echo "No ZIP files found in electron/"
+
+          echo ""
+          echo "=== Build outputs (expected location) ==="
+          ls -la electron/dist/release/ 2>/dev/null || echo "No release directory"
+
+          echo ""
+          echo "=== Checking for .node files ==="
           find electron/dist/release -name "*.node" -type f 2>/dev/null | head -10 || echo "No .node files found"
 
+          echo ""
+          echo "=== electron-builder.log (last 100 lines) ==="
+          tail -100 electron/electron-builder.log 2>/dev/null || echo "No electron-builder.log found"
+
+          echo ""
+          echo "=== Checking parent directory ==="
+          ls -la electron/dist/ 2>/dev/null || echo "No electron/dist directory"
+
           # 验证 DMG 存在
-          dmg_count=$(find electron/dist/release -name "*.dmg" | wc -l)
+          dmg_count=$(find electron/dist/release -name "*.dmg" 2>/dev/null | wc -l)
           if [ "$dmg_count" -eq 0 ]; then
-            echo "::error::No DMG file found"
+            echo "::error::No DMG file found in electron/dist/release/"
             exit 1
           fi
           echo "Found $dmg_count DMG file(s)"
