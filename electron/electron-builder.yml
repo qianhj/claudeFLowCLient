@@ -21,7 +21,7 @@ extraResources:
 
 directories:
   output: "dist/release"
-  buildResources: "assets"
+  # buildResources: "assets"  # 暂时注释，因为 assets 目录不存在
 
 win:
   target:
@@ -64,8 +64,8 @@ linux:
   category: Development
   maintainer: "HZ"
 
-# 重建原生模块（node-pty）- 暂时禁用测试
-# afterPack: "scripts/rebuild-native.js"
+# 重建原生模块（node-pty）
+afterPack: "scripts/rebuild-native.js"
 
 asar: true
 asarUnpack:

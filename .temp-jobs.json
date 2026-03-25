@@ -2,21 +2,21 @@
   "total_count": 2,
   "jobs": [
     {
-      "id": 68517284872,
-      "run_id": 23537779575,
+      "id": 68517886360,
+      "run_id": 23537957443,
       "workflow_name": "Build macOS",
-      "head_branch": "v1.12.7",
-      "run_url": "https://api.github.com/repos/qianhj/claudeFLowCLient/actions/runs/23537779575",
+      "head_branch": "v1.12.8",
+      "run_url": "https://api.github.com/repos/qianhj/claudeFLowCLient/actions/runs/23537957443",
       "run_attempt": 1,
-      "node_id": "CR_kwDORuBIzs8AAAAP8_LMCA",
-      "head_sha": "503b1e9d8a90d8a0be1ecc2a430475ceb423da10",
-      "url": "https://api.github.com/repos/qianhj/claudeFLowCLient/actions/jobs/68517284872",
-      "html_url": "https://github.com/qianhj/claudeFLowCLient/actions/runs/23537779575/job/68517284872",
+      "node_id": "CR_kwDORuBIzs8AAAAP8_v5mA",
+      "head_sha": "8b319008909751d4d7c0ecafe5ef89aa9e36f7ac",
+      "url": "https://api.github.com/repos/qianhj/claudeFLowCLient/actions/jobs/68517886360",
+      "html_url": "https://github.com/qianhj/claudeFLowCLient/actions/runs/23537957443/job/68517886360",
       "status": "completed",
       "conclusion": "failure",
-      "created_at": "2026-03-25T11:04:12Z",
-      "started_at": "2026-03-25T11:04:15Z",
-      "completed_at": "2026-03-25T11:05:32Z",
+      "created_at": "2026-03-25T11:08:48Z",
+      "started_at": "2026-03-25T11:08:50Z",
+      "completed_at": "2026-03-25T11:10:27Z",
       "name": "build-macos",
       "steps": [
         {
@@ -24,208 +24,208 @@
           "status": "completed",
           "conclusion": "success",
           "number": 1,
-          "started_at": "2026-03-25T11:04:16Z",
-          "completed_at": "2026-03-25T11:04:18Z"
+          "started_at": "2026-03-25T11:08:51Z",
+          "completed_at": "2026-03-25T11:08:54Z"
         },
         {
           "name": "Checkout code",
           "status": "completed",
           "conclusion": "success",
           "number": 2,
-          "started_at": "2026-03-25T11:04:18Z",
-          "completed_at": "2026-03-25T11:04:20Z"
+          "started_at": "2026-03-25T11:08:54Z",
+          "completed_at": "2026-03-25T11:08:56Z"
         },
         {
           "name": "Install Xcode Command Line Tools",
           "status": "completed",
           "conclusion": "success",
           "number": 3,
-          "started_at": "2026-03-25T11:04:20Z",
-          "completed_at": "2026-03-25T11:04:22Z"
+          "started_at": "2026-03-25T11:08:56Z",
+          "completed_at": "2026-03-25T11:08:59Z"
         },
         {
           "name": "Setup Git HTTPS",
           "status": "completed",
           "conclusion": "success",
           "number": 4,
-          "started_at": "2026-03-25T11:04:22Z",
-          "completed_at": "2026-03-25T11:04:22Z"
+          "started_at": "2026-03-25T11:08:59Z",
+          "completed_at": "2026-03-25T11:08:59Z"
         },
         {
           "name": "Setup Node.js",
           "status": "completed",
           "conclusion": "success",
           "number": 5,
-          "started_at": "2026-03-25T11:04:22Z",
-          "completed_at": "2026-03-25T11:04:23Z"
+          "started_at": "2026-03-25T11:08:59Z",
+          "completed_at": "2026-03-25T11:09:00Z"
         },
         {
           "name": "Install pnpm",
           "status": "completed",
           "conclusion": "success",
           "number": 6,
-          "started_at": "2026-03-25T11:04:23Z",
-          "completed_at": "2026-03-25T11:04:25Z"
+          "started_at": "2026-03-25T11:09:00Z",
+          "completed_at": "2026-03-25T11:09:02Z"
         },
         {
           "name": "Get pnpm store directory",
           "status": "completed",
           "conclusion": "success",
           "number": 7,
-          "started_at": "2026-03-25T11:04:25Z",
-          "completed_at": "2026-03-25T11:04:25Z"
+          "started_at": "2026-03-25T11:09:02Z",
+          "completed_at": "2026-03-25T11:09:02Z"
         },
         {
           "name": "Setup pnpm cache",
           "status": "completed",
           "conclusion": "success",
           "number": 8,
-          "started_at": "2026-03-25T11:04:25Z",
-          "completed_at": "2026-03-25T11:04:25Z"
+          "started_at": "2026-03-25T11:09:02Z",
+          "completed_at": "2026-03-25T11:09:03Z"
         },
         {
           "name": "Setup Electron cache",
           "status": "completed",
           "conclusion": "success",
           "number": 9,
-          "started_at": "2026-03-25T11:04:25Z",
-          "completed_at": "2026-03-25T11:04:25Z"
+          "started_at": "2026-03-25T11:09:03Z",
+          "completed_at": "2026-03-25T11:09:03Z"
         },
         {
           "name": "[1] Install dependencies",
           "status": "completed",
           "conclusion": "success",
           "number": 10,
-          "started_at": "2026-03-25T11:04:25Z",
-          "completed_at": "2026-03-25T11:04:58Z"
+          "started_at": "2026-03-25T11:09:03Z",
+          "completed_at": "2026-03-25T11:09:42Z"
         },
         {
           "name": "[2] Build server & client",
           "status": "completed",
           "conclusion": "success",
           "number": 11,
-          "started_at": "2026-03-25T11:04:58Z",
-          "completed_at": "2026-03-25T11:05:12Z"
+          "started_at": "2026-03-25T11:09:42Z",
+          "completed_at": "2026-03-25T11:10:03Z"
         },
         {
           "name": "[3] Create optimized server",
           "status": "completed",
           "conclusion": "success",
           "number": 12,
-          "started_at": "2026-03-25T11:05:12Z",
-          "completed_at": "2026-03-25T11:05:18Z"
+          "started_at": "2026-03-25T11:10:03Z",
+          "completed_at": "2026-03-25T11:10:10Z"
         },
         {
           "name": "[4] Build electron",
           "status": "completed",
           "conclusion": "success",
           "number": 13,
-          "started_at": "2026-03-25T11:05:18Z",
-          "completed_at": "2026-03-25T11:05:18Z"
+          "started_at": "2026-03-25T11:10:10Z",
+          "completed_at": "2026-03-25T11:10:11Z"
         },
         {
           "name": "[5] electron-builder pack",
           "status": "completed",
           "conclusion": "failure",
           "number": 14,
-          "started_at": "2026-03-25T11:05:18Z",
-          "completed_at": "2026-03-25T11:05:29Z"
+          "started_at": "2026-03-25T11:10:11Z",
+          "completed_at": "2026-03-25T11:10:24Z"
         },
         {
           "name": "[6] Verify build artifacts",
           "status": "completed",
           "conclusion": "skipped",
           "number": 15,
-          "started_at": "2026-03-25T11:05:29Z",
-          "completed_at": "2026-03-25T11:05:29Z"
+          "started_at": "2026-03-25T11:10:24Z",
+          "completed_at": "2026-03-25T11:10:24Z"
         },
         {
           "name": "Upload macOS artifact",
           "status": "completed",
           "conclusion": "skipped",
           "number": 16,
-          "started_at": "2026-03-25T11:05:29Z",
-          "completed_at": "2026-03-25T11:05:29Z"
+          "started_at": "2026-03-25T11:10:24Z",
+          "completed_at": "2026-03-25T11:10:24Z"
         },
         {
           "name": "Post Setup Electron cache",
           "status": "completed",
           "conclusion": "skipped",
           "number": 28,
-          "started_at": "2026-03-25T11:05:29Z",
-          "completed_at": "2026-03-25T11:05:29Z"
+          "started_at": "2026-03-25T11:10:24Z",
+          "completed_at": "2026-03-25T11:10:24Z"
         },
         {
           "name": "Post Setup pnpm cache",
           "status": "completed",
           "conclusion": "skipped",
           "number": 29,
-          "started_at": "2026-03-25T11:05:29Z",
-          "completed_at": "2026-03-25T11:05:29Z"
+          "started_at": "2026-03-25T11:10:24Z",
+          "completed_at": "2026-03-25T11:10:24Z"
         },
         {
           "name": "Post Install pnpm",
           "status": "completed",
           "conclusion": "success",
           "number": 30,
-          "started_at": "2026-03-25T11:05:29Z",
-          "completed_at": "2026-03-25T11:05:29Z"
+          "started_at": "2026-03-25T11:10:24Z",
+          "completed_at": "2026-03-25T11:10:24Z"
         },
         {
           "name": "Post Setup Node.js",
           "status": "completed",
           "conclusion": "skipped",
           "number": 31,
-          "started_at": "2026-03-25T11:05:29Z",
-          "completed_at": "2026-03-25T11:05:29Z"
+          "started_at": "2026-03-25T11:10:24Z",
+          "completed_at": "2026-03-25T11:10:24Z"
         },
         {
           "name": "Post Checkout code",
           "status": "completed",
           "conclusion": "success",
           "number": 32,
-          "started_at": "2026-03-25T11:05:29Z",
-          "completed_at": "2026-03-25T11:05:30Z"
+          "started_at": "2026-03-25T11:10:24Z",
+          "completed_at": "2026-03-25T11:10:25Z"
         },
         {
           "name": "Complete job",
           "status": "completed",
           "conclusion": "success",
           "number": 33,
-          "started_at": "2026-03-25T11:05:30Z",
-          "completed_at": "2026-03-25T11:05:30Z"
+          "started_at": "2026-03-25T11:10:25Z",
+          "completed_at": "2026-03-25T11:10:26Z"
         }
       ],
-      "check_run_url": "https://api.github.com/repos/qianhj/claudeFLowCLient/check-runs/68517284872",
+      "check_run_url": "https://api.github.com/repos/qianhj/claudeFLowCLient/check-runs/68517886360",
       "labels": [
         "macos-latest"
       ],
-      "runner_id": 1000000611,
-      "runner_name": "GitHub Actions 1000000611",
+      "runner_id": 1000000612,
+      "runner_name": "GitHub Actions 1000000612",
       "runner_group_id": 0,
       "runner_group_name": "GitHub Actions"
     },
     {
-      "id": 68517462986,
-      "run_id": 23537779575,
+      "id": 68518107536,
+      "run_id": 23537957443,
       "workflow_name": "Build macOS",
-      "head_branch": "v1.12.7",
-      "run_url": "https://api.github.com/repos/qianhj/claudeFLowCLient/actions/runs/23537779575",
+      "head_branch": "v1.12.8",
+      "run_url": "https://api.github.com/repos/qianhj/claudeFLowCLient/actions/runs/23537957443",
       "run_attempt": 1,
-      "node_id": "CR_kwDORuBIzs8AAAAP8_WDyg",
-      "head_sha": "503b1e9d8a90d8a0be1ecc2a430475ceb423da10",
-      "url": "https://api.github.com/repos/qianhj/claudeFLowCLient/actions/jobs/68517462986",
-      "html_url": "https://github.com/qianhj/claudeFLowCLient/actions/runs/23537779575/job/68517462986",
+      "node_id": "CR_kwDORuBIzs8AAAAP8_9ZkA",
+      "head_sha": "8b319008909751d4d7c0ecafe5ef89aa9e36f7ac",
+      "url": "https://api.github.com/repos/qianhj/claudeFLowCLient/actions/jobs/68518107536",
+      "html_url": "https://github.com/qianhj/claudeFLowCLient/actions/runs/23537957443/job/68518107536",
       "status": "completed",
       "conclusion": "skipped",
-      "created_at": "2026-03-25T11:05:32Z",
-      "started_at": "2026-03-25T11:05:32Z",
-      "completed_at": "2026-03-25T11:05:32Z",
+      "created_at": "2026-03-25T11:10:28Z",
+      "started_at": "2026-03-25T11:10:28Z",
+      "completed_at": "2026-03-25T11:10:27Z",
       "name": "release",
       "steps": [
 
       ],
-      "check_run_url": "https://api.github.com/repos/qianhj/claudeFLowCLient/check-runs/68517462986",
+      "check_run_url": "https://api.github.com/repos/qianhj/claudeFLowCLient/check-runs/68518107536",
       "labels": [
         "ubuntu-latest"
       ],
