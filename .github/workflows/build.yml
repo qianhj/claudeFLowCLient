@@ -93,14 +93,8 @@ jobs:
 
           cd electron/server-prod
 
-          # 创建独立 workspace 配置
-          cat > pnpm-workspace.yaml << 'EOF'
-          packages:
-            - '.'
-          EOF
-
-          # 安装生产依赖
-          pnpm install --prod --frozen-lockfile
+          # 使用 npm 安装生产依赖（避免 pnpm workspace 问题）
+          npm install --omit=dev --no-audit --no-fund
 
           # 验证 node-pty
           if [ ! -d "node_modules/node-pty" ]; then
