@@ -210,3 +210,46 @@ powershell -ExecutionPolicy Bypass -File "D:\hz-cc-flow-src\build-pack.ps1"
 | `Cannot GET /`（连上 dev server）| 开发服务器残留占用 3001 端口 | `main.ts` 启动前调用 `killPort()` |
 | 黑屏不渲染 | Google Fonts 外部请求在打包环境阻塞渲染 | `client/index.html` 移除 Google Fonts 链接 |
 | 服务端启动崩溃 | Express 5 不支持 `app.get("*", ...)` 通配符 | `server/src/app.ts` 改为 `"/*path"` |
+| IPC `mainWindow!` 空指针 | 窗口关闭后调用 dialog 崩溃 | `main.ts` 改为 `BrowserWindow.getFocusedWindow()` |
+
+### 打包优化
+
+**优化脚本**：`scripts/optimize-electron.ps1`
+
+用于清理无用文件并创建精简版 server，减少安装包体积。
+
+```powershell
+# 执行优化（打包前运行）
+powershell -ExecutionPolicy Bypass -File "scripts/optimize-electron.ps1"
+
+# 然后打包
+cd electron
+pnpm pack
+```
+
+**优化内容**：
+
+| 优化项 | 原大小 | 优化后 | 说明 |
+|--------|--------|--------|------|
+| `.ignored` 目录 | ~294 MB | 0 | pnpm 旧版本缓存，可删除 |
+| `server` 依赖 | 147 MB (含 dev) | 148 MB (仅 prod) | 生产依赖本身已较精简 |
+
+**空间占用分析**（node_modules）：
+
+```
+electron/node_modules       ~1,043 MB  (主要: app-builder-bin 414MB + electron 268MB)
+client/node_modules           ~222 MB
+server/node_modules           ~147 MB  (claude-agent-sdk + node-pty 为主)
+node_modules/.pnpm            ~841 MB  (pnpm 全局存储，硬链接不重复占用)
+```
+
+**清理命令**：
+
+```powershell
+# 删除 pnpm 缓存（如需要）
+Remove-Item -Path "electron/node_modules/.ignored" -Recurse -Force
+
+# 完整重建（从干净状态开始）
+Remove-Item -Path "electron/node_modules", "electron/server-prod" -Recurse -Force
+pnpm install
+```
