@@ -1,25 +1,19 @@
-appId: com.hz.cc-flow
+﻿appId: com.hz.cc-flow
 productName: "HZ CC Flow"
 copyright: "Copyright © 2024 HZ"
 
-# 主进程入口（electron/dist/main.js 编译产物）
 files:
   - dist/**/*
   - "!dist/**/*.map"
 
-# 额外资源：后端 dist 和前端 dist 打包进 resources/
+# 使用精简版 server-prod 替代完整 server
 extraResources:
-  - from: "../server/dist"
-    to: "server/dist"
-    filter:
-      - "**/*"
-  - from: "../server/package.json"
-    to: "server/package.json"
-  - from: "../server/node_modules"
-    to: "server/node_modules"
+  - from: "server-prod"
+    to: "server"
     filter:
       - "**/*"
       - "!**/.cache/**"
+      - "!**/.pnpm/**"
   - from: "../client/dist"
     to: "client/dist"
     filter:
@@ -29,13 +23,11 @@ directories:
   output: "dist/release"
   buildResources: "assets"
 
-# Windows 打包配置
 win:
   target:
     - target: nsis
       arch:
         - x64
-  # 不签名（无证书）
   signtoolOptions:
     signingHashAlgorithms: []
 
@@ -47,7 +39,6 @@ nsis:
   createStartMenuShortcut: true
   shortcutName: "HZ CC Flow"
 
-# macOS 打包配置
 mac:
   target:
     - target: dmg
@@ -58,14 +49,10 @@ mac:
       arch:
         - x64
         - arm64
-  # 不签名（无证书）
   identity: null
-  # 禁用 Gatekeeper 评估（需要签名时才可用）
   gatekeeperAssess: false
-  #  hardenedRuntime 需要签名，禁用
   hardenedRuntime: false
 
-# Linux 打包配置
 linux:
   target:
     - target: AppImage
@@ -80,7 +67,6 @@ linux:
 # 重建原生模块（node-pty）
 afterPack: "scripts/rebuild-native.js"
 
-# 不将 node_modules 自动打包（我们手动通过 extraResources 包含）
 asar: true
 asarUnpack:
   - "**/*.node"
