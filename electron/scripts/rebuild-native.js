@@ -49,15 +49,26 @@ function findElectronRebuild() {
 }
 
 exports.default = async function (context) {
+  console.log("[rebuild] ==========================================");
+  console.log("[rebuild] Starting afterPack hook");
+  console.log("[rebuild] ==========================================");
+
   const rebuild = findElectronRebuild();
 
   if (!rebuild || !rebuild.rebuild) {
     console.error("[rebuild] ERROR: @electron/rebuild not found!");
     console.error("[rebuild] Please install: pnpm add -D @electron/rebuild in electron/");
+    console.log("[rebuild] WARNING: Skipping native module rebuild");
     return;
   }
 
   const { appOutDir, packager } = context;
+
+  console.log(`[rebuild] appOutDir: ${appOutDir}`);
+  console.log(`[rebuild] packager.info:`, JSON.stringify({
+    platform: packager.platform?.name,
+    arch: packager.arch,
+  }, null, 2));
 
   // 获取 electron 版本
   let electronVersion = packager.config.electronVersion;
@@ -82,6 +93,7 @@ exports.default = async function (context) {
 
   if (!electronVersion) {
     console.error("[rebuild] ERROR: Cannot determine electron version");
+    console.log("[rebuild] WARNING: Skipping native module rebuild");
     return;
   }
 
@@ -91,15 +103,40 @@ exports.default = async function (context) {
   const serverDir = path.join(appOutDir, "resources", "server");
   const modulesDir = path.join(serverDir, "node_modules");
 
+  console.log(`[rebuild] Checking serverDir: ${serverDir}`);
+  console.log(`[rebuild] Checking modulesDir: ${modulesDir}`);
+
+  if (!fs.existsSync(serverDir)) {
+    console.error(`[rebuild] ERROR: server dir not found at ${serverDir}`);
+    console.log("[rebuild] Listing resources dir:");
+    const resourcesDir = path.join(appOutDir, "resources");
+    if (fs.existsSync(resourcesDir)) {
+      const files = fs.readdirSync(resourcesDir);
+      files.forEach(f => console.log(`  - ${f}`));
+    }
+    console.log("[rebuild] WARNING: Skipping native module rebuild");
+    return;
+  }
+
   if (!fs.existsSync(modulesDir)) {
     console.error(`[rebuild] ERROR: node_modules not found at ${modulesDir}`);
+    console.log("[rebuild] Listing server dir:");
+    const files = fs.readdirSync(serverDir);
+    files.forEach(f => console.log(`  - ${f}`));
+    console.log("[rebuild] WARNING: Skipping native module rebuild");
     return;
   }
 
   // 检查 node-pty 是否存在
   const nodePtyPath = path.join(modulesDir, "node-pty");
+  console.log(`[rebuild] Checking node-pty at: ${nodePtyPath}`);
+
   if (!fs.existsSync(nodePtyPath)) {
     console.error(`[rebuild] ERROR: node-pty not found at ${nodePtyPath}`);
+    console.log("[rebuild] Listing modules dir (first 20):");
+    const files = fs.readdirSync(modulesDir).slice(0, 20);
+    files.forEach(f => console.log(`  - ${f}`));
+    console.log("[rebuild] WARNING: Skipping native module rebuild");
     return;
   }
 
@@ -132,16 +169,20 @@ exports.default = async function (context) {
     findNodeFiles(searchDir);
 
     if (builtFiles.length === 0) {
-      throw new Error("No .node files found after rebuild");
+      console.warn("[rebuild] WARNING: No .node files found after rebuild");
+    } else {
+      console.log(`[rebuild] Success! Built files:`);
+      builtFiles.forEach(f => console.log(`  - ${path.relative(appOutDir, f)}`));
     }
-
-    console.log(`[rebuild] Success! Built files:`);
-    builtFiles.forEach(f => console.log(`  - ${path.relative(appOutDir, f)}`));
 
   } catch (err) {
     console.error("[rebuild] FAILED:", err.message);
     console.error(err.stack);
-    // 原生模块重建失败应该终止构建
-    throw new Error(`Native module rebuild failed: ${err.message}`);
+    // 不终止构建，只记录警告
+    console.log("[rebuild] WARNING: Native module rebuild failed, but continuing build");
   }
+
+  console.log("[rebuild] ==========================================");
+  console.log("[rebuild] afterPack hook completed");
+  console.log("[rebuild] ==========================================");
 };

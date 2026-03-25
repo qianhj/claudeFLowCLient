@@ -115,9 +115,18 @@ jobs:
       - name: '[5] electron-builder pack'
         run: |
           cd electron
+          echo "Current directory: $(pwd)"
+          echo "Listing electron dir:"
+          ls -la
+          echo "Checking server-prod:"
+          ls -la server-prod/ 2>/dev/null || echo "server-prod not found!"
+          echo "Checking server-prod/node_modules:"
+          ls -la server-prod/node_modules/ 2>/dev/null | head -20 || echo "node_modules not found!"
+          echo "Running electron-builder..."
           pnpm exec electron-builder --config electron-builder.yml --mac
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: false
+          ELECTRON_BUILDER_LOGGING: "true"
 
       - name: '[6] Verify build artifacts'
         run: |
