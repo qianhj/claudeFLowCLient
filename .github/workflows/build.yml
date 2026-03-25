@@ -36,7 +36,7 @@ jobs:
 
       # ========== 依赖安装 ==========
       - name: '[1] Install dependencies'
-        run: pnpm install
+        run: pnpm install --no-frozen-lockfile
 
       # ========== 构建 ==========
       - name: '[2] Build server & client'
